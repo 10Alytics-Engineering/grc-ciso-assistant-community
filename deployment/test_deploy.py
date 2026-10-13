@@ -36,7 +36,14 @@ class SimulatedDeployment(deploy.Deployment):
             container = args[-1].removeprefix('name=^/').removesuffix('$')
             output = container if container in self.workers else ''
         elif args[:2] == ['docker', 'inspect']:
-            output = 'true' if self.workers.get(args[-1]) else 'false'
+            if 'IPAddress' in args[3]:
+                addresses = {'grc-release-dns-a': '10.0.0.8', 'grc-release-dns-b': '10.0.0.9',
+                             'grc-backend-1': '10.0.0.2', 'grc-frontend-1': '10.0.0.3',
+                             'grc-blue-backend-1': '10.0.0.4', 'grc-blue-frontend-1': '10.0.0.5',
+                             'grc-green-backend-1': '10.0.0.6', 'grc-green-frontend-1': '10.0.0.7'}
+                output = addresses[args[-1]]
+            else:
+                output = 'true' if self.workers.get(args[-1]) or args[-1].startswith('grc-release-dns-') else 'false'
         elif args[:2] == ['docker', 'wait']:
             if self.failure == 'drain':
                 self.failure = ''
@@ -45,12 +52,7 @@ class SimulatedDeployment(deploy.Deployment):
         elif args[:2] == ['docker', 'start']:
             self.workers[args[-1]] = True
         elif args[:4] == ['docker', 'exec', deploy.PROXY, 'caddy']:
-            if 'validate' in args:
-                self.fail('config')
-            if 'reload' in args:
-                self.fail('reload')
-                config = (self.root / 'Caddyfile').read_text()
-                self.serving = self.slot if f'backend-{self.slot}' in config else self.active['slot']
+            raise AssertionError('A routine release must never reload or restart Caddy')
         elif args[:4] == ['docker', 'exec', deploy.PROXY, 'wget']:
             self.fail('readiness')
         # Every infrastructure operation must leave a web slot serving traffic.
@@ -78,6 +80,13 @@ class SimulatedDeployment(deploy.Deployment):
         assert self.web[self.serving], f'traffic interrupted by {args}'
         return subprocess.CompletedProcess(args, 0, stdout='')
 
+    def atomic_write(self, path, content, mode=None):
+        super().atomic_write(path, content, mode)
+        if path.name == 'hosts':
+            self.serving = {'10.0.0.2': 'legacy', '10.0.0.4': 'blue', '10.0.0.6': 'green'}[content.split()[0]]
+            self.events.append(['switch-route', self.serving])
+            assert self.web[self.serving], 'DNS pointed at an unready slot'
+
     def backup(self):
         self.events.append(['online-backup'])
         assert self.web[self.serving]
@@ -103,11 +112,19 @@ class DeploymentTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.original_env = f'DOMAIN=example.com\nTAG={OLD}\nSECRET=keep-me\n'
         (self.root / '.env').write_text(self.original_env)
-        (self.root / 'Caddyfile').write_text('reverse_proxy backend:8000')
+        routing = self.root / 'routing'
+        routing.mkdir()
+        source = Path(__file__).parent
+        config = (source / 'Caddyfile.slot').read_text().replace('__DNS_A__', '10.0.0.8').replace('__DNS_B__', '10.0.0.9')
+        (self.root / 'Caddyfile').write_text(config)
+        (routing / 'Corefile').write_text((source / 'Corefile').read_text())
+        (routing / 'compose.yml').write_text((source / 'compose.routing.yml').read_text())
+        (routing / 'hosts').write_text('10.0.0.2 backend.grc.internal\n10.0.0.3 frontend.grc.internal\n')
         release = self.root / 'releases' / TAG
         release.mkdir(parents=True)
         (release / 'compose.slot.yml').write_text('slot compose fixture')
-        (release / 'Caddyfile.slot').write_text('reverse_proxy backend-__SLOT__:8000\nrelease __RELEASE__')
+        for name in ('Caddyfile.slot', 'Corefile', 'compose.routing.yml'):
+            (release / name).write_text((source / name).read_text())
 
     def test_legacy_conversion_preserves_http_and_hands_over_one_worker(self):
         deployment = SimulatedDeployment(self.root)
@@ -118,14 +135,13 @@ class DeploymentTests(unittest.TestCase):
         self.assertTrue(deployment.workers[deployment.new_worker])
         self.assertEqual(json.loads(deployment.state_file.read_text())['tag'], TAG)
         self.assertEqual((self.root / '.env').read_text(), self.original_env.replace(OLD, TAG))
-        reload_index = next(i for i, args in enumerate(deployment.events) if 'reload' in args)
+        switch_index = deployment.events.index(['switch-route', 'blue'])
         for name in ('previous', 'candidate'):
-            self.assertLess(deployment.events.index(['preserve-assets', name]), reload_index)
+            self.assertLess(deployment.events.index(['preserve-assets', name]), switch_index)
         self.assertFalse(any(args[:2] == ['docker', 'stop'] and deploy.PROXY in args for args in deployment.events))
 
     def test_next_release_uses_green_and_keeps_blue_available(self):
         (self.root / 'deployment-state.json').write_text(json.dumps({'slot': 'blue', 'tag': OLD}))
-        (self.root / 'Caddyfile').write_text('reverse_proxy backend-blue:8000')
         deployment = SimulatedDeployment(self.root)
         deployment.run()
         self.assertEqual(deployment.serving, 'green')
@@ -143,7 +159,7 @@ class DeploymentTests(unittest.TestCase):
                 self.assertEqual((self.root / '.env').read_text(), self.original_env)
 
     def test_unready_candidate_does_not_switch_traffic_or_worker(self):
-        for phase in ('startup', 'readiness', 'config'):
+        for phase in ('startup', 'readiness'):
             with self.subTest(phase=phase):
                 deployment = SimulatedDeployment(self.root, phase)
                 # Each simulated run creates its own backup.
@@ -181,6 +197,14 @@ class DeploymentTests(unittest.TestCase):
             deployment.run()
         self.assertTrue(deployment.workers[deployment.old_worker])
         self.assertFalse(any(args[:2] in (['docker', 'kill'], ['docker', 'stop']) for args in deployment.events))
+
+    def test_changed_routing_configuration_cannot_reload_the_live_proxy(self):
+        (self.root / 'Caddyfile').write_text('changed configuration')
+        deployment = SimulatedDeployment(self.root)
+        with self.assertRaises(RuntimeError):
+            deployment.run()
+        self.assertTrue(deployment.workers[deployment.old_worker])
+        self.assertFalse(any(event[0] == 'compose' for event in deployment.events))
 
     def test_invalid_release_tag_is_rejected(self):
         with self.assertRaises(ValueError):

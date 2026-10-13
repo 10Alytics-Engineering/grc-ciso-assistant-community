@@ -1,10 +1,10 @@
+# GRC dynamic routing v1: routine deployments update DNS, never this config.
 {$DOMAIN} {
     encode zstd gzip
     header {
         Strict-Transport-Security "max-age=31536000"
         X-Content-Type-Options "nosniff"
         Referrer-Policy "strict-origin-when-cross-origin"
-        X-GRC-Release "__RELEASE__"
     }
     handle /_app/immutable/* {
         root * /data/grc-assets
@@ -12,13 +12,29 @@
         file_server
     }
     handle /api/* {
-        reverse_proxy backend-__SLOT__:8000 {
-            stream_close_delay 5m
+        reverse_proxy {
+            dynamic a backend.grc.internal 8000 {
+                resolvers __DNS_A__:53 __DNS_B__:53
+                versions ipv4
+                refresh 1s
+            }
+            header_down X-GRC-Upstream {http.reverse_proxy.upstream.host}
+            transport http {
+                keepalive off
+            }
         }
     }
     handle {
-        reverse_proxy frontend-__SLOT__:3000 {
-            stream_close_delay 5m
+        reverse_proxy {
+            dynamic a frontend.grc.internal 3000 {
+                resolvers __DNS_A__:53 __DNS_B__:53
+                versions ipv4
+                refresh 1s
+            }
+            header_down X-GRC-Upstream {http.reverse_proxy.upstream.host}
+            transport http {
+                keepalive off
+            }
         }
     }
 }

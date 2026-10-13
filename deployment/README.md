@@ -91,7 +91,17 @@ also join the existing proxy network with unique `backend-blue`/`frontend-blue`
 (or green) aliases. This avoids changing the DNS names used by the legacy stack
 while converting an existing installation.
 
-The existing `grc-caddy-1` container stays running throughout deployment:
+The existing `grc-caddy-1` container stays running with **unchanged configuration**
+throughout ordinary deployments. Two small CoreDNS containers serve the selected
+backend/frontend addresses from an atomically updated hosts file. Caddy's dynamic
+upstream discovery refreshes these addresses every second. This avoids the TLS
+handshake resets observed when reloading Caddy 2.11.4 under live probes.
+The DNS service is internal only and publishes no host ports.
+
+See [Caddy dynamic upstreams](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#dynamic-upstreams)
+and [CoreDNS hosts reloads](https://coredns.io/plugins/hosts/).
+
+Each release:
 
 1. Pull images and check for unapplied database migrations **without applying
    them**. If any are pending, fail the release and keep the current site live.
@@ -104,8 +114,10 @@ The existing `grc-caddy-1` container stays running throughout deployment:
    tasks finish. Start one new worker only after the old one exits. Tasks can
    queue briefly during this handover; HTTP stays available. If draining exceeds
    five minutes, fail without forcibly killing in-flight tasks.
-5. Gracefully reload Caddy to the healthy candidate. Confirm the API and login
-   page return HTTP 200 with the expected `X-GRC-Release` response header. Save
+5. Atomically update `/opt/ciso/routing/hosts` to select the healthy candidate.
+   No proxy reload or restart occurs. Confirm the API and login page return
+   HTTP 200 and their diagnostic `X-GRC-Upstream` headers identify the candidate
+   container addresses. Save
    the active slot in `/opt/ciso/deployment-state.json` and version in
    `/opt/ciso/deployed-tag`.
 6. Keep the previous web slot running for rollback and existing requests. It is
@@ -113,7 +125,7 @@ The existing `grc-caddy-1` container stays running throughout deployment:
    Keep the two release images and seven complete automatic backups.
 
 Failures before cutover leave the live route untouched. Failures during cutover
-restore the previous Caddy configuration and worker; no database restore is
+restore the previous routing addresses and worker; no database restore is
 performed. The first release automatically converts the legacy stack to blue.
 The following release retires the legacy application containers while preserving
 Caddy. Its certificate volumes and network remain in place.
@@ -158,7 +170,7 @@ after conversion: it is retained for bootstrap/reference and proxy inspection,
 not application releases. Never stop or recreate Caddy to deploy the web app.
 
 For an operator-run rehearsal using already loaded images, stage `deploy.sh`,
-`deploy.py`, `compose.slot.yml`, and `Caddyfile.slot` in
+`deploy.py`, `compose.slot.yml`, `Caddyfile.slot`, `compose.routing.yml`, and `Corefile` in
 `/opt/ciso/releases/<tag>`, then run:
 
 ```bash
@@ -166,7 +178,21 @@ bash /opt/ciso/releases/<tag>/deploy.sh <tag> <github-user> --loaded-images
 ```
 
 This takes the same deployment lock and runs the same backup, readiness,
-worker-handover, cutover and rollback logic. Never restore the entire shared
+worker-handover, cutover and rollback logic.
+
+### One-time routing setup
+
+Before the first blue/green deployment on a new server, stage the same release
+files and run `deploy.sh <tag> <github-user> --setup-routing-only`. This starts the
+two resolvers, initially pointing them at the currently running web containers,
+preserves frontend assets, validates the stable proxy configuration, and applies
+it once. This infrastructure conversion can reset an in-progress TLS handshake;
+perform it before the deployment availability measurement. Subsequent routine
+releases never reload Caddy. If the routing template, resolver addresses, image,
+or Corefile changes, the release fails before touching the app until routing
+infrastructure is explicitly updated with the setup command.
+
+Never restore the entire shared
 PostgreSQL cluster to roll back this application.
 
 The modified source is in the public 10Alytics repository, linked from the login

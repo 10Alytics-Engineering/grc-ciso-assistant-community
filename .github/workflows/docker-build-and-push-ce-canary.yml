@@ -308,7 +308,7 @@ jobs:
         run: |
           set -euo pipefail
           ssh grc-production "install -d -m 700 /opt/ciso/releases/$RELEASE_TAG"
-          scp deployment/compose.slot.yml deployment/Caddyfile.slot deployment/deploy.sh deployment/deploy.py \
+          scp deployment/compose.slot.yml deployment/Caddyfile.slot deployment/deploy.sh deployment/deploy.py deployment/compose.routing.yml deployment/Corefile \
             "grc-production:/opt/ciso/releases/$RELEASE_TAG/"
       - name: Back up and deploy
         if: steps.current.outputs.deploy == 'true'

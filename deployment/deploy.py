@@ -3,6 +3,7 @@
 import argparse
 import fcntl
 import json
+import ipaddress
 import os
 from pathlib import Path
 import re
@@ -64,9 +65,11 @@ class Deployment:
             '--env-file', str(self.root / '.env'), '-f', str(self.slot_dir / 'compose.yml'),
             *args], check=True, env=env, **kwargs)
 
-    def atomic_write(self, path, content):
+    def atomic_write(self, path, content, mode=None):
         temporary = path.with_name(path.name + '.next')
         temporary.write_text(content)
+        if mode is not None:
+            temporary.chmod(mode)
         temporary.replace(path)
 
     def public_check(self, tag, require_header=True):
@@ -78,8 +81,12 @@ class Deployment:
                     with urllib.request.urlopen(request, timeout=15) as response:
                         if response.status != 200:
                             raise RuntimeError(f'{path} is not healthy')
-                        if require_header and response.headers.get('X-GRC-Release') != tag:
-                            raise RuntimeError(f'{path} is not serving release {tag}')
+                        if require_header:
+                            slot = self.slot if tag == self.tag else self.active['slot']
+                            service = 'backend' if path.startswith('/api/') else 'frontend'
+                            container = f'grc-{service}-1' if slot == 'legacy' else f'grc-{slot}-{service}-1'
+                            if response.headers.get('X-GRC-Upstream') != self.container_ip(container):
+                                raise RuntimeError(f'{path} is not serving release {tag}')
                         response.read()
                     break
                 except Exception:
@@ -132,12 +139,85 @@ class Deployment:
         self.cmd('docker', 'cp', f'{assets}/.', f'{PROXY}:/data/grc-assets/_app/immutable/')
         shutil.rmtree(assets)
 
-    def reload_proxy(self, config):
-        # Preserve the inode of the existing bind mount. Replacing this file
-        # atomically would leave the running container reading the old inode.
-        (self.root / 'Caddyfile').write_text(config)
-        self.cmd('docker', 'exec', PROXY, 'caddy', 'reload', '--config', '/etc/caddy/Caddyfile')
+    def container_ip(self, container):
+        address = self.cmd('docker', 'inspect', '--format',
+                           '{{(index .NetworkSettings.Networks "grc_default").IPAddress}}',
+                           container, capture_output=True, text=True).stdout.strip()
+        return str(ipaddress.IPv4Address(address))
+
+    def routing_config(self):
+        return (self.release / 'Caddyfile.slot').read_text().replace(
+            '__DNS_A__', self.container_ip('grc-release-dns-a')).replace(
+            '__DNS_B__', self.container_ip('grc-release-dns-b'))
+
+    def switch_route(self, slot):
+        addresses = []
+        for service in ('backend', 'frontend'):
+            container = f'grc-{service}-1' if slot == 'legacy' else f'grc-{slot}-{service}-1'
+            addresses.append(f'{self.container_ip(container)} {service}.grc.internal')
+        self.atomic_write(self.root / 'routing' / 'hosts', '\n'.join(addresses) + '\n', mode=0o644)
         (self.root / 'last-switch-time').write_text(str(time.time()))
+
+    def verify_router(self):
+        routing = self.root / 'routing'
+        if (self.root / 'Caddyfile').read_text() != self.routing_config():
+            raise RuntimeError('Routing infrastructure needs setup; use --setup-routing-only separately. '
+                               'Routine releases never reload the TLS proxy.')
+        for source, target in (('Corefile', 'Corefile'), ('compose.routing.yml', 'compose.yml')):
+            if (self.release / source).read_text() != (routing / target).read_text():
+                raise RuntimeError('Routing infrastructure changed; update it separately before releasing')
+        for container in ('grc-release-dns-a', 'grc-release-dns-b'):
+            status = self.cmd('docker', 'inspect', '--format', '{{.State.Running}}', container,
+                              capture_output=True, text=True).stdout.strip()
+            if status != 'true':
+                raise RuntimeError(f'Routing resolver {container} is not running')
+
+    def setup_router(self):
+        """One-time infrastructure change; never called by an ordinary release."""
+        routing = self.root / 'routing'
+        routing.mkdir(mode=0o755, exist_ok=True)
+        routing.chmod(0o755)
+        for source, target in (('Corefile', 'Corefile'), ('compose.routing.yml', 'compose.yml')):
+            shutil.copy2(self.release / source, routing / target)
+            (routing / target).chmod(0o644)
+        last_switch = self.root / 'last-switch-time'
+        previous_switch = last_switch.read_text() if last_switch.exists() else None
+        self.switch_route(self.active['slot'])
+        if previous_switch is None:
+            last_switch.unlink(missing_ok=True)
+        else:
+            last_switch.write_text(previous_switch)
+        self.cmd('docker', 'compose', '-p', 'grc-routing', '--project-directory', self.root,
+                 '-f', routing / 'compose.yml', 'up', '-d', '--pull', 'missing')
+        for container in ('grc-release-dns-a', 'grc-release-dns-b'):
+            for attempt in range(15):
+                try:
+                    self.cmd('docker', 'exec', PROXY, 'nslookup', 'backend.grc.internal',
+                             self.container_ip(container), stdout=subprocess.DEVNULL)
+                    break
+                except subprocess.CalledProcessError:
+                    if attempt == 14:
+                        raise
+                    time.sleep(1)
+        frontend = 'grc-frontend-1' if self.active['slot'] == 'legacy' else f"grc-{self.active['slot']}-frontend-1"
+        self.preserve_assets(frontend, 'bootstrap')
+        config = self.routing_config()
+        staged = routing / 'Caddyfile.dynamic'
+        staged.write_text(config)
+        self.cmd('docker', 'cp', staged, f'{PROXY}:/tmp/Caddyfile.dynamic')
+        self.cmd('docker', 'exec', PROXY, 'caddy', 'validate', '--config', '/tmp/Caddyfile.dynamic')
+        if config != self.old_caddy:
+            (routing / 'Caddyfile.before-dynamic').write_text(self.old_caddy)
+            try:
+                # Preserve the inode of the proxy's existing bind mount.
+                (self.root / 'Caddyfile').write_text(config)
+                self.cmd('docker', 'exec', PROXY, 'caddy', 'reload', '--config', '/etc/caddy/Caddyfile')
+                self.public_check(self.active['tag'])
+            except BaseException:
+                (self.root / 'Caddyfile').write_text(self.old_caddy)
+                self.cmd('docker', 'exec', PROXY, 'caddy', 'reload', '--config', '/etc/caddy/Caddyfile')
+                raise
+        print('Dynamic routing installed; ordinary deployments will not reload Caddy.', flush=True)
 
     def drain_worker(self, container):
         exists = self.cmd('docker', 'ps', '-aq', '--filter', f'name=^/{container}$',
@@ -163,7 +243,7 @@ class Deployment:
     def rollback(self):
         print('Deployment failed; restoring the previous route and worker.', flush=True)
         if self.route_attempted:
-            self.reload_proxy(self.old_caddy)
+            self.switch_route(self.active['slot'])
         if self.worker_changed:
             self.drain_worker(self.new_worker)
             self.cmd('docker', 'update', '--restart=unless-stopped', self.old_worker)
@@ -179,7 +259,8 @@ class Deployment:
             self.compose('down', '--timeout', '120')
 
     def run(self):
-        self.public_check(self.active['tag'], require_header=self.active['slot'] != 'legacy')
+        self.verify_router()
+        self.public_check(self.active['tag'])
         if not self.loaded_images:
             self.cmd('docker', 'login', 'ghcr.io', '--username', self.user, '--password-stdin')
         # The previous slot remains alive after cutover. Do not recycle it until
@@ -234,11 +315,6 @@ class Deployment:
             old_frontend = 'grc-frontend-1' if self.active['slot'] == 'legacy' else f"grc-{self.active['slot']}-frontend-1"
             self.preserve_assets(old_frontend, 'previous')
             self.preserve_assets(f'grc-{self.slot}-frontend-1', 'candidate')
-            config = (self.release / 'Caddyfile.slot').read_text().replace('__SLOT__', self.slot).replace('__RELEASE__', self.tag)
-            candidate_config = self.release / 'Caddyfile.candidate'
-            candidate_config.write_text(config)
-            self.cmd('docker', 'cp', candidate_config, f'{PROXY}:/tmp/Caddyfile.candidate')
-            self.cmd('docker', 'exec', PROXY, 'caddy', 'validate', '--config', '/tmp/Caddyfile.candidate')
             # Validate the new consumer before stopping the current one.
             self.compose('run', '--rm', '--no-deps', '--entrypoint', 'python', 'huey',
                          '-c', 'import django; django.setup(); from huey.contrib.djhuey import HUEY; HUEY.pending_count()')
@@ -246,7 +322,7 @@ class Deployment:
             self.drain_worker(self.old_worker)
             self.compose('up', '-d', '--no-deps', '--pull', 'never', '--wait', '--wait-timeout', '180', 'huey')
             self.route_attempted = True
-            self.reload_proxy(config)
+            self.switch_route(self.slot)
             self.public_check(self.tag)
             self.atomic_write(self.root / '.env', re.sub(r'^TAG=.*$', f'TAG={self.tag}', self.original_env, flags=re.MULTILINE))
             self.atomic_write(self.state_file, json.dumps({'slot': self.slot, 'tag': self.tag,
@@ -281,6 +357,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('tag')
     parser.add_argument('registry_user')
+    parser.add_argument('--setup-routing-only', action='store_true', help='Install routing infrastructure without releasing the app')
     parser.add_argument('--loaded-images', action='store_true', help='Use already loaded images for an operator-run rehearsal')
     args = parser.parse_args()
     os.umask(0o077)
@@ -291,7 +368,10 @@ def main():
         with tempfile.TemporaryDirectory(prefix='grc-registry-') as credentials:
             deployment = Deployment(ROOT, args.tag, args.registry_user, args.loaded_images)
             deployment.env['DOCKER_CONFIG'] = credentials
-            deployment.run()
+            if args.setup_routing_only:
+                deployment.setup_router()
+            else:
+                deployment.run()
 
 
 if __name__ == '__main__':
