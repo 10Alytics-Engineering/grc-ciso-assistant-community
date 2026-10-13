@@ -1,7 +1,5 @@
-subject: "CISO Assistant : Un questionnaire vous a été attribué"
+subject: "10A GRC Lab : Un questionnaire vous a été attribué"
 body: |
-  <img src="https://intuitem.com/ciso-assistant.png" alt="CISO Assistant" width="200">
-
   **Votre plateforme de gestion GRC tout-en-un**
 
   Bonjour,
@@ -14,4 +12,4 @@ body: |
   ${questionnaire_url}
 
   Cordialement,
-  L'équipe CISO Assistant
+  L'équipe 10A GRC Lab
