@@ -2,7 +2,7 @@
 from django.utils.translation import gettext_lazy as _
 
 config = {
-    "SITE_TITLE": "CISO Assistant",
+    "SITE_TITLE": "10A GRC Lab",
     "INDEX_TITLE": _("Editor"),
     "MENU_TITLE": _("Menu"),
 }

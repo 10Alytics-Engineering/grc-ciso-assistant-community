@@ -1,4 +1,4 @@
-subject: "CISO Assistant: Ihre Aufgabe für '${assessment_name}' wurde zur Überarbeitung zurückgegeben"
+subject: "10A GRC Lab: Ihre Aufgabe für '${assessment_name}' wurde zur Überarbeitung zurückgegeben"
 body: |
   Hallo,
 

@@ -1,4 +1,4 @@
-subject: "CISO Assistant: Seit ${expired_since} ${expired_since_unit} abgelaufene Ausnahmen"
+subject: "10A GRC Lab: Seit ${expired_since} ${expired_since_unit} abgelaufene Ausnahmen"
 body: |
   Hallo,
 
@@ -6,6 +6,6 @@ body: |
 
   ${exception_list}
 
-  Melden Sie sich in Ihrem CISO-Assistant-Portal an, um diese Ausnahmen zu prüfen und zu aktualisieren: [CISO Assistant öffnen](${ciso_assistant_url})
+  Melden Sie sich in Ihrem 10A GRC Lab-Portal an, um diese Ausnahmen zu prüfen und zu aktualisieren: [10A GRC Lab öffnen](${ciso_assistant_url})
 
   Vielen Dank.

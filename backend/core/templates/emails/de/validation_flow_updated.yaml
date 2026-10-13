@@ -1,4 +1,4 @@
-subject: "CISO Assistant: Freigabe '${validation_ref_id}' wurde ${new_status}"
+subject: "10A GRC Lab: Freigabe '${validation_ref_id}' wurde ${new_status}"
 body: |
   Hallo,
 

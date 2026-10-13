@@ -1,4 +1,4 @@
-subject: "CISO Assistant: Validation '${validation_ref_id}' has been ${new_status}"
+subject: "10A GRC Lab: Validation '${validation_ref_id}' has been ${new_status}"
 body: |
   Hello,
 

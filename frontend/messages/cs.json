@@ -5147,7 +5147,7 @@
 	"publicDocuments": "Veřejné dokumenty",
 	"publicDocumentsHelp": "Soubory publikované do vašeho centra důvěry. Každý je přístupný ze samostatné veřejné URL oddělené od interních důkazů.",
 	"noPublicDocuments": "Zatím žádné veřejné dokumenty.",
-	"poweredByCISOAssistant": "Vytvořeno pomocí CISO Assistant",
+	"poweredByCISOAssistant": "Vytvořeno pomocí 10A GRC Lab",
 	"noPrimaryPortal": "Zatím nebylo publikováno žádné hlavní centrum důvěry.",
 	"vanityUrlHelp": "Jako hlavní centrum důvěry je tento portál dostupný také na níže uvedené zkrácené URL adrese.",
 	"frameworkSnapshots": "Snímky shody rámců (Snapshots)",

@@ -1,5 +1,5 @@
 """
-SCIM 2.0 Views for CISO Assistant.
+SCIM 2.0 Views for 10A GRC Lab.
 
 Endpoints:
   GET/POST                    /api/scim/v2/Users
@@ -107,7 +107,7 @@ class ServiceProviderConfigView(views.APIView):
                 {
                     "type": "oauthbearertoken",
                     "name": "OAuth Bearer Token",
-                    "description": "Authentication using a Bearer token issued by CISO Assistant",
+                    "description": "Authentication using a Bearer token issued by 10A GRC Lab",
                 }
             ],
             "meta": {
@@ -128,7 +128,7 @@ class ServiceProviderConfigView(views.APIView):
 
 
 class SchemasView(views.APIView):
-    """GET /Schemas — list every schema CISO Assistant supports."""
+    """GET /Schemas — list every schema 10A GRC Lab supports."""
 
     authentication_classes = []
     permission_classes = []

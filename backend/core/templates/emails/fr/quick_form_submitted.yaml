@@ -1,4 +1,4 @@
-subject: "CISO Assistant : Le formulaire rapide '${response_name}' a été soumis"
+subject: "10A GRC Lab : Le formulaire rapide '${response_name}' a été soumis"
 body: |
   Bonjour,
 
@@ -7,6 +7,6 @@ body: |
   - Réponse : ${response_name}
   - Formulaire : ${quick_form_name}
 
-  Veuillez vous connecter à CISO Assistant pour la relire : [Ouvrir la réponse](${ciso_assistant_url}/quick-form-responses/${response_id})
+  Veuillez vous connecter à 10A GRC Lab pour la relire : [Ouvrir la réponse](${ciso_assistant_url}/quick-form-responses/${response_id})
 
   Merci.

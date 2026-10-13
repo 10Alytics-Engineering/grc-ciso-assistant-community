@@ -1,4 +1,4 @@
-subject: "CISO Assistant: Your assignment on '${assessment_name}' has been ${decision}"
+subject: "10A GRC Lab: Your assignment on '${assessment_name}' has been ${decision}"
 body: |
   Hello,
 
@@ -8,6 +8,6 @@ body: |
   - Decision: ${decision}
   ${reviewer_observation}
 
-  Please log in to your CISO Assistant portal for more details: [Go to CISO Assistant](${ciso_assistant_url}/auditee-dashboard)
+  Please log in to your 10A GRC Lab portal for more details: [Go to 10A GRC Lab](${ciso_assistant_url}/auditee-dashboard)
 
   Thank you.

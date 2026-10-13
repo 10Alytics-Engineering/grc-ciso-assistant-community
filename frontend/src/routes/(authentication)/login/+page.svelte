@@ -47,8 +47,13 @@
 			<div class="mt-7">
 				<FormCard {data} {form} />
 				<p class="mt-6 text-center text-xs text-surface-600-400">
-					Powered by CISO Assistant ·
-					<a class="underline" href="https://github.com/10Alytics-Engineering/grc-ciso-assistant-community" target="_blank" rel="noopener noreferrer">Source code (AGPL-3.0)</a>
+					Powered by 10Alytics ·
+					<a
+						class="underline"
+						href="https://github.com/10Alytics-Engineering/grc-ciso-assistant-community"
+						target="_blank"
+						rel="noopener noreferrer">Source code (AGPL-3.0)</a
+					>
 				</p>
 			</div>
 		</div>

@@ -3563,7 +3563,7 @@
 	"publicDocuments": "Dokumenty publiczne",
 	"publicDocumentsHelp": "Pliki opublikowane w centrum zaufania. Każdy z nich jest udostępniany pod odizolowanym publicznym adresem URL, oddzielnie od wewnętrznych dowodów.",
 	"noPublicDocuments": "Brak dokumentów publicznych.",
-	"poweredByCISOAssistant": "Działa na CISO Assistant",
+	"poweredByCISOAssistant": "Działa na 10A GRC Lab",
 	"noPrimaryPortal": "Nie opublikowano jeszcze głównego centrum zaufania.",
 	"vanityUrlHelp": "Jako główne centrum zaufania ten portal jest dostępny również pod poniższym skróconym adresem URL.",
 	"frameworkSnapshots": "Migawki standardów",

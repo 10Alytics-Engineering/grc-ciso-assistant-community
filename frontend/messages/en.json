@@ -3571,7 +3571,7 @@
 	"publicDocuments": "Public documents",
 	"publicDocumentsHelp": "Files published to your trust center. Each is served from an isolated public URL, separate from internal evidence.",
 	"noPublicDocuments": "No public documents yet.",
-	"poweredByCISOAssistant": "Powered by CISO Assistant",
+	"poweredByCISOAssistant": "Powered by 10A GRC Lab",
 	"noPrimaryPortal": "No primary trust center has been published yet.",
 	"vanityUrlHelp": "As the primary trust center, this portal is also reachable at the short URL below.",
 	"frameworkSnapshots": "Framework snapshots",

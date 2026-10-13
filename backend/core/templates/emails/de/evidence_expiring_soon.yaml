@@ -1,4 +1,4 @@
-subject: "CISO Assistant: Nachweise laufen in ${days_remaining} ${days_remaining_unit} ab"
+subject: "10A GRC Lab: Nachweise laufen in ${days_remaining} ${days_remaining_unit} ab"
 body: |
   Hallo,
 
@@ -6,6 +6,6 @@ body: |
 
   ${evidence_list}
 
-  Melden Sie sich in Ihrem CISO-Assistant-Portal an, um diese Nachweise zu prüfen und zu aktualisieren: [CISO Assistant öffnen](${ciso_assistant_url})
+  Melden Sie sich in Ihrem 10A GRC Lab-Portal an, um diese Nachweise zu prüfen und zu aktualisieren: [10A GRC Lab öffnen](${ciso_assistant_url})
 
   Vielen Dank.

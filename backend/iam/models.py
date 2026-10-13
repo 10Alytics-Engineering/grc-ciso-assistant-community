@@ -1,4 +1,4 @@
-"""IAM model for CISO Assistant
+"""IAM model for 10A GRC Lab
 Inspired from Azure IAM model"""
 
 from __future__ import annotations
@@ -842,7 +842,7 @@ class UserManager(BaseUserManager):
             try:
                 user.mailing(
                     email_template_name=template_name,
-                    subject=_("Welcome to CISO Assistant!"),
+                    subject=_("Welcome to 10A GRC Lab!"),
                 )
             except Exception as exception:
                 print(f"sending email to {email} failed")
@@ -1424,7 +1424,7 @@ class GrantFolderSet:
 
 
 class RoleAssignment(NameDescriptionMixin, FolderMixin):
-    """fundamental class for CISO Assistant RBAC model, similar to Azure IAM model"""
+    """fundamental class for 10A GRC Lab RBAC model, similar to Azure IAM model"""
 
     if TYPE_CHECKING:
         perimeter_folders: Any  # pragma: no cover
