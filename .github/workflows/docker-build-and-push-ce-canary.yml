@@ -200,3 +200,37 @@ jobs:
             -t "ghcr.io/$REPO/backend:$VERSION" \
             -t "ghcr.io/$REPO/backend:canary" \
             "ghcr.io/$REPO/backend:$VERSION-amd64"
+
+  deployment-archives:
+    needs: [prepare, merge-manifests]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      matrix:
+        component: [backend, frontend]
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Export pinned deployment image
+        env:
+          IMAGE: ghcr.io/${{ needs.prepare.outputs.repository }}/${{ matrix.component }}:${{ needs.prepare.outputs.version }}
+        run: |
+          set -euo pipefail
+          docker pull "$IMAGE"
+          docker save "$IMAGE" | gzip -1 > image.tar.gz
+          sha256sum image.tar.gz > image.tar.gz.sha256
+      - name: Store deployment archive
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ matrix.component }}-${{ needs.prepare.outputs.version }}
+          path: |
+            image.tar.gz
+            image.tar.gz.sha256
+          compression-level: 0
+          retention-days: 3

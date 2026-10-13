@@ -16,10 +16,20 @@ No additional managed database cluster is required.
    administrative roles or change permissions on existing application databases.
 4. Copy `compose.yml` and `Caddyfile` to `/opt/ciso`. Copy `.env.example` to
    `/opt/ciso/.env`, fill secrets, and `chmod 600 /opt/ciso/.env`.
-   Use the cluster's private hostname and TLS. Do not commit credentials.
+   Use the cluster's private hostname and TLS. Download its CA certificate into
+   `/opt/ciso/db/ca-certificate.crt`, readable by UID 1001, for `verify-full`.
+   Do not commit credentials.
+   Configure `MAILGUN_API_KEY`, `MAILGUN_DOMAIN=10alyticsbusiness.ca`, and the sender.
+   Email uses Mailgun's US HTTPS API through Django Anymail, avoiding the
+   droplet's blocked SMTP ports. Keep the key only in the protected `.env`.
 5. Publish an immutable canary tag using the CE canary GitHub workflow and set
-   `TAG` to that release. Public GHCR images do not require a pull token; if
-   packages are private, supply a narrowly scoped read-packages credential.
+   `TAG` to that release. The workflow also exports short-lived deployment
+   archives. Download each archive with an authorized GitHub account, verify
+   `sha256sum -c image.tar.gz.sha256`, then load it with
+   `docker load < image.tar.gz` on the droplet. This supports private packages
+   without storing a GitHub credential on the server. With loaded images, use
+   `docker compose up -d --pull never`. Alternatively, supply a narrowly scoped
+   read-packages credential for direct registry pulls.
 6. Set the Cloudflare `grc` A record to the droplet IPv4. Use DNS-only while
    Caddy obtains its certificate; if enabling proxying, require Full (strict)
    encryption and verify the application again.
