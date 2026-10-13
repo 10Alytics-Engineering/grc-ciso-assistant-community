@@ -1712,9 +1712,7 @@ def notify_audit_assignees(audit) -> list:
                     continue
                 specific.mailing(
                     email_template_name="tprm/third_party_email.html",
-                    subject=_(
-                        "CISO Assistant: A questionnaire has been assigned to you"
-                    ),
+                    subject=_("10A GRC Lab: A questionnaire has been assigned to you"),
                     object="auditee-assessments",
                     object_id=assignment.id,
                 )

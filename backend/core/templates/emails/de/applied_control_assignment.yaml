@@ -1,4 +1,4 @@
-subject: "CISO Assistant: Ihnen wurde '${control_name}' zugewiesen"
+subject: "10A GRC Lab: Ihnen wurde '${control_name}' zugewiesen"
 body: |
   Hallo,
 
@@ -12,6 +12,6 @@ body: |
   - ETA: ${control_eta}
   - Bereich: ${folder_name}
 
-  Melden Sie sich in Ihrem CISO-Assistant-Portal an, um diese Maßnahme anzuzeigen und zu verwalten: [CISO Assistant öffnen](${ciso_assistant_url})
+  Melden Sie sich in Ihrem 10A GRC Lab-Portal an, um diese Maßnahme anzuzeigen und zu verwalten: [10A GRC Lab öffnen](${ciso_assistant_url})
 
   Vielen Dank.

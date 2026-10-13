@@ -325,7 +325,7 @@ class PasswordResetView(views.APIView):
                     )
                     associated_user.mailing(
                         email_template_name="registration/password_reset_email.html",
-                        subject=_("CISO Assistant: Password Reset"),
+                        subject=_("10A GRC Lab: Password Reset"),
                     )
                     logger.info(
                         "Password reset email request processed", recipient=email

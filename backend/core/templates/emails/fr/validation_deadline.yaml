@@ -1,4 +1,4 @@
-subject: "CISO Assistant: Échéance de validation dans ${days} jour(s)"
+subject: "10A GRC Lab: Échéance de validation dans ${days} jour(s)"
 body: |
   Bonjour,
 
@@ -6,6 +6,6 @@ body: |
 
   ${validation_list}
 
-  Veuillez examiner et traiter ces demandes avant l'échéance : [Accéder à CISO Assistant](${ciso_assistant_url})
+  Veuillez examiner et traiter ces demandes avant l'échéance : [Accéder à 10A GRC Lab](${ciso_assistant_url})
 
   Merci.

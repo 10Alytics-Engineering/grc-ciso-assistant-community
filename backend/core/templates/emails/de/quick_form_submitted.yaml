@@ -1,4 +1,4 @@
-subject: "CISO Assistant: Das Schnellformular '${response_name}' wurde eingereicht"
+subject: "10A GRC Lab: Das Schnellformular '${response_name}' wurde eingereicht"
 body: |
   Hallo,
 
@@ -7,6 +7,6 @@ body: |
   - Antwort: ${response_name}
   - Formular: ${quick_form_name}
 
-  Melden Sie sich in CISO Assistant an, um die Antwort zu prüfen: [Antwort öffnen](${ciso_assistant_url}/quick-form-responses/${response_id})
+  Melden Sie sich in 10A GRC Lab an, um die Antwort zu prüfen: [Antwort öffnen](${ciso_assistant_url}/quick-form-responses/${response_id})
 
   Vielen Dank.

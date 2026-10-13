@@ -9198,7 +9198,7 @@ class LoadFileView(APIView):
                     _warn(
                         "operational_scenario",
                         os_name,
-                        "no importable attack path; CISO Assistant requires one",
+                        "no importable attack path; 10A GRC Lab requires one",
                         os_data.get("id", ""),
                     )
                     continue
@@ -9241,7 +9241,7 @@ class LoadFileView(APIView):
                             _warn(
                                 "operational_scenario",
                                 os_name,
-                                f"attack path '{first_ap.name}' is already linked to another OS (CISO Assistant enforces one OS per attack path)",
+                                f"attack path '{first_ap.name}' is already linked to another OS (10A GRC Lab enforces one OS per attack path)",
                                 os_data.get("id", ""),
                             )
                             continue

@@ -164,9 +164,7 @@ def export_domain(
                             file_content,
                         )
 
-        dumpfile_name = (
-            f"ciso-assistant-{slugify(instance.name)}-domain-{timezone.now()}"
-        )
+        dumpfile_name = f"10a-grc-lab-{slugify(instance.name)}-domain-{timezone.now()}"
         dump_data = ExportSerializer.dump_data(scope=[*objects.values()])
 
         logger.debug(

@@ -45,7 +45,7 @@ class WebhookEndpoint(NameDescriptionMixin, FolderMixin):
         KAFKA = "kafka", "Kafka"
 
     class BodyFormat(models.TextChoices):
-        CISO_NATIVE = "ciso_native", "CISO Assistant (HMAC-signed)"
+        CISO_NATIVE = "ciso_native", "10A GRC Lab (HMAC-signed)"
         OCSF = "ocsf", "OCSF"
         RAW = "raw", "Raw LogEntry"
 

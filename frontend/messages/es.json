@@ -877,7 +877,7 @@
 	"errorLicenseSeatsExceeded": "Se ha excedido el número de licencias, no podrá otorgar derechos de edición a este usuario. Póngase en contacto con su administrador.",
 	"availableSeats": "Asientos disponibles",
 	"showImagesUnauthenticated": "Mostrar logotipo y favicono a usuarios no autenticados",
-	"showImagesUnauthenticatedHelpText": "Si está deshabilitado, el logotipo y el favicon habituales del Asistente de CISO se mostrarán en la pantalla de inicio de sesión.",
+	"showImagesUnauthenticatedHelpText": "Si está deshabilitado, el logotipo y el favicon habituales del 10A GRC Lab se mostrarán en la pantalla de inicio de sesión.",
 	"librariesCanOnlyBeLoadedByAdmin": "Las bibliotecas sólo pueden ser cargadas por un administrador",
 	"catalog": "Catalogar",
 	"operations": "Operaciones",

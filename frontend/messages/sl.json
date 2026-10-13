@@ -3133,7 +3133,7 @@
 	"publicDocuments": "Javni dokumenti",
 	"publicDocumentsHelp": "Datoteke, objavljene na vašem portalu zaupanja. Vsaka se streže z izoliranega javnega URL-ja, ločeno od notranjih dokazov.",
 	"noPublicDocuments": "Ni še javnih dokumentov.",
-	"poweredByCISOAssistant": "Omogoča CISO Assistant",
+	"poweredByCISOAssistant": "Omogoča 10A GRC Lab",
 	"noPrimaryPortal": "Noben primarni portal zaupanja še ni bil objavljen.",
 	"vanityUrlHelp": "Kot primarni portal zaupanja je ta portal dosegljiv tudi na spodnjem kratkem URL naslovu.",
 	"frameworkSnapshots": "Posnetki stanja okvirov",

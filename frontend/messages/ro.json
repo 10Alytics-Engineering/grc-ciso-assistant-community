@@ -909,7 +909,7 @@
 	"errorLicenseSeatsExceeded": "Numărul de locuri de licență este depășit, nu veți putea acorda drepturi de editare acestui utilizator. Vă rugăm să contactați administratorul dvs.",
 	"availableSeats": "Locuri disponibile",
 	"showImagesUnauthenticated": "Afișați sigla și favicon pentru utilizatorii neautentificați",
-	"showImagesUnauthenticatedHelpText": "Dacă este dezactivată, logo-ul obișnuit al Asistentului CISO și favicon-ul vor fi afișate pe ecranul de conectare",
+	"showImagesUnauthenticatedHelpText": "Dacă este dezactivată, logo-ul obișnuit al 10A GRC Lab și favicon-ul vor fi afișate pe ecranul de conectare",
 	"librariesCanOnlyBeLoadedByAdmin": "Bibliotecile pot fi încărcate numai de un administrator",
 	"catalog": "Catalog",
 	"operations": "Operațiuni",

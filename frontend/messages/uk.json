@@ -3840,7 +3840,7 @@
 	"publicDocuments": "Публічні документи",
 	"publicDocumentsHelp": "Файли, опубліковані у вашому центрі довіри. Кожен обслуговується з ізольованого публічного URL, окремо від внутрішніх доказів.",
 	"noPublicDocuments": "Публічних документів ще немає.",
-	"poweredByCISOAssistant": "На основі CISO Assistant",
+	"poweredByCISOAssistant": "На основі 10A GRC Lab",
 	"noPrimaryPortal": "Основний центр довіри ще не опубліковано.",
 	"vanityUrlHelp": "Як основний центр довіри, цей портал також доступний за коротким URL нижче.",
 	"frameworkSnapshots": "Знімки фреймворку",

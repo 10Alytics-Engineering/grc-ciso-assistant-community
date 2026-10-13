@@ -1,4 +1,4 @@
-subject: "CISO Assistant: Aufgabe für '${assessment_name}' eingereicht"
+subject: "10A GRC Lab: Aufgabe für '${assessment_name}' eingereicht"
 body: |
   Hallo,
 
@@ -8,6 +8,6 @@ body: |
   - Eingereicht von: ${actor_names}
   - Bewertete Anforderungen: ${requirement_count}
 
-  Melden Sie sich in Ihrem CISO-Assistant-Portal an, um die Einreichung zu prüfen: [CISO Assistant öffnen](${ciso_assistant_url})
+  Melden Sie sich in Ihrem 10A GRC Lab-Portal an, um die Einreichung zu prüfen: [10A GRC Lab öffnen](${ciso_assistant_url})
 
   Vielen Dank.
