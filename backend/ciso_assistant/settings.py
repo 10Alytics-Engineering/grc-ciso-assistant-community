@@ -568,6 +568,18 @@ EMAIL_PORT = os.environ.get("EMAIL_PORT")
 logger.info("EMAIL_PORT: %s", EMAIL_PORT)
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+MAILGUN_API_KEY = os.environ.get("MAILGUN_API_KEY")
+if MAILGUN_API_KEY:
+    EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
+    ANYMAIL = {
+        "MAILGUN_API_KEY": MAILGUN_API_KEY,
+        "MAILGUN_SENDER_DOMAIN": os.environ["MAILGUN_DOMAIN"],
+        "MAILGUN_API_URL": "https://api.mailgun.net/v3",
+    }
+    # Existing mailing capability checks require a host and port. Mailgun uses
+    # HTTPS through Anymail; these values never open an SMTP connection.
+    EMAIL_HOST = "api.mailgun.net"
+    EMAIL_PORT = 443
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "False").lower() in ("true", "1", "yes")
 logger.info("EMAIL_USE_TLS: %s", EMAIL_USE_TLS)
 EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", "False").lower() in ("true", "1", "yes")
