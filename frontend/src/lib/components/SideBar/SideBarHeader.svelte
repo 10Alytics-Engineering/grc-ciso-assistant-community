@@ -2,8 +2,8 @@
 	import Logo from '$lib/components/Logo/Logo.svelte';
 </script>
 
-<header>
-	<a href="/analytics" class="flex flex-col space-x-4 border-b pb-3 items-center justify-center">
+<header class="flex h-16 shrink-0 items-center border-b border-surface-200-800 px-4">
+	<a href="/analytics" class="flex min-w-0 items-center">
 		<Logo />
 	</a>
 </header>

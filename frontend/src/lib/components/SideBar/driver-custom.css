@@ -2,7 +2,7 @@
 @reference '../../../app.css'
 
 .driver-popover {
-	@apply bg-white rounded-lg shadow-lg border border-purple-200 max-w-md;
+	@apply bg-white rounded-lg shadow-lg border border-primary-200 max-w-md;
 	animation: popover-scale 0.2s ease-in-out;
 }
 
@@ -37,7 +37,7 @@
 
 .driver-popover .driver-popover-next-btn {
 	all: unset;
-	@apply px-4 py-2 text-base transition-colors bg-purple-700 text-white hover:bg-purple-600 rounded-tr-lg rounded-br-lg cursor-pointer;
+	@apply px-4 py-2 text-base transition-colors bg-primary-500 text-white hover:bg-primary-600 rounded-tr-lg rounded-br-lg cursor-pointer;
 }
 
 .driver-popover .driver-popover-prev-btn[disabled],

@@ -4,7 +4,8 @@ ARG NODE_BUILD_IMAGE=ghcr.io/intuitem/ciso-assistant-community/mirror/dhi-node:2
 ARG NODE_RUNTIME_IMAGE=ghcr.io/intuitem/ciso-assistant-community/mirror/dhi-node:24
 
 FROM ${NODE_BUILD_IMAGE} AS builder
-ENV NODE_OPTIONS="--max-old-space-size=10240"
+ARG NODE_BUILD_HEAP_MB=5120
+ENV NODE_OPTIONS="--max-old-space-size=${NODE_BUILD_HEAP_MB}"
 WORKDIR /app
 
 ENV PUBLIC_BACKEND_API_URL=foo
@@ -22,7 +23,7 @@ RUN pnpm prune
 # Distroless runtime: no shell, no package manager, no npm. The copies are chowned
 # rather than a user being created, since groupadd/useradd need a shell.
 FROM ${NODE_RUNTIME_IMAGE}
-ENV NODE_OPTIONS="--max-old-space-size=10240"
+ENV NODE_OPTIONS="--max-old-space-size=1024"
 WORKDIR /app
 COPY --from=builder --chown=1000:1000 /app/build build/
 COPY --from=builder --chown=1000:1000 /app/server server/

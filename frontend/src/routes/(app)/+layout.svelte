@@ -4,7 +4,6 @@
 	// Most of your app wide CSS should be put in this file
 	import '../../app.css';
 
-	import { AppBar } from '@skeletonlabs/skeleton-svelte';
 	import { safeTranslate, setUseRiskCategoryLabel } from '$lib/utils/i18n';
 
 	import SideBar from '$lib/components/SideBar/SideBar.svelte';
@@ -159,90 +158,65 @@
 </script>
 
 <svelte:head>
-	<title>CISO Assistant | {safeTranslate(displayTitle)}</title>
+	<title>10A GRC Lab | {safeTranslate(displayTitle)}</title>
 </svelte:head>
 
 <!-- App Shell -->
 <!-- min-height and background live here (not on <main>) so appbar + main can
      add up to exactly one viewport; min-h-screen on <main> alone always overflowed. -->
-<div class="overflow-x-clip min-h-dvh bg-linear-to-br from-surface-200-800 to-surface-150-850">
+<div class="overflow-x-clip min-h-dvh workspace-canvas">
 	<SideBar bind:open={sidebarOpen} {sideBarVisibleItems} />
-	<AppBar
-		class="sticky top-0 z-50 border-b border-surface-200-800 transition-all duration-300 bg-surface-50-950 w-auto pb-2 px-4 {classesSidebarOpen(
+	<header
+		class="sticky top-0 z-50 flex h-16 items-center justify-between gap-4 border-b border-surface-200-800 bg-surface-50-950/95 backdrop-blur px-4 sm:px-6 transition-all duration-300 {classesSidebarOpen(
 			sidebarOpen
 		)}"
 	>
-		<div class="flex items-start justify-between px-4">
-			<div>
-				<div
-					class="text-2xl font-bold pb-1 bg-linear-to-r from-pink-500 to-violet-600 bg-clip-text text-transparent"
-					id="page-title"
-				>
-					{safeTranslate(displayTitle)}
-				</div>
-				{#if displayModelName}
-					<div class="text-sm text-surface-600-400 font-medium">
-						{safeTranslate(displayModelName)}
-					</div>
-				{/if}
-				{#if displayModelDescription}
-					<div class="text-xs text-surface-600-400 italic">
-						{safeTranslate(displayModelDescription)}
-					</div>
-				{/if}
-			</div>
-			<div class="flex items-center gap-2">
-				{#if sideBarVisibleItems.notifications && !data?.user?.is_third_party}
-					<NotificationBell />
-				{/if}
-				<ThemeToggle />
-				{#if data?.featureflags?.custom_portals && !data?.user?.is_third_party}
-					<a
-						href="/portal"
-						class="flex items-center gap-2 shrink-0 rounded-lg border border-surface-200-800 bg-surface-100-900/80 px-3 py-1.5
-			text-xs text-surface-600-400 hover:bg-surface-200-800 hover:border-surface-300-700 hover:text-surface-700-300
-			transition-all duration-150"
-					>
-						<i class="fa-solid fa-table-cells-large text-surface-500"></i>
-						<span class="hidden sm:inline">{m.portals()}</span>
-					</a>
-				{/if}
-				{#if !data?.user?.is_third_party}
-					<button
-						onclick={() => commandPalette?.toggle()}
-						aria-label={m.search()}
-						data-testid="command-palette-trigger"
-						class="flex items-center gap-2 shrink-0 rounded-lg border border-surface-200-800 bg-surface-100-900/80 px-3 py-1.5
-			text-xs text-surface-600-400 hover:bg-surface-200-800 hover:border-surface-300-700 hover:text-surface-700-300
-			transition-all duration-150 cursor-pointer"
-					>
-						<i class="fa-solid fa-magnifying-glass text-surface-500"></i>
-						<span class="hidden sm:inline text-surface-500">{m.searchEllipsis()}</span>
-						<kbd
-							class="hidden sm:inline-flex items-center rounded border border-surface-200-800 bg-surface-50-950 px-1.5 py-0.5
-				font-mono text-[10px] text-surface-500">{modifierKey}K</kbd
-						>
-					</button>
-				{/if}
-				{#if data?.user?.is_admin && data?.settings?.show_get_started !== false}
-					<button
-						onclick={() => getStartedTrigger.set(true)}
-						class="shrink-0 px-3 py-1.5 rounded-full bg-violet-500 dark:bg-violet-600 text-white text-xs font-semibold shadow-lg
-			ring-2 ring-violet-400 ring-offset-2 transition-all duration-300 hover:bg-violet-600
-			hover:ring-violet-300 hover:ring-offset-violet-100 hover:shadow-violet-500/50
-			focus:outline-hidden focus:ring-violet-500 cursor-pointer"
-					>
-						<i class="fa-solid fa-rocket mr-1"></i>
-						{m.getStarted()}
-					</button>
-				{/if}
-			</div>
-		</div>
-		<div class="px-4">
-			<hr class="my-1" />
+		<div class="min-w-0 flex-1">
 			<Breadcrumbs />
 		</div>
-	</AppBar>
+		<div class="flex shrink-0 items-center gap-2">
+			{#if sideBarVisibleItems.notifications && !data?.user?.is_third_party}
+				<NotificationBell />
+			{/if}
+			<ThemeToggle />
+			{#if data?.featureflags?.custom_portals && !data?.user?.is_third_party}
+				<a
+					href="/portal"
+					class="flex h-9 items-center gap-2 shrink-0 rounded-md border border-surface-200-800 bg-surface-50-950 px-3
+		text-[13px] font-medium text-surface-600-400 hover:bg-surface-100-900 hover:text-surface-950-50 transition-colors"
+				>
+					<i class="fa-solid fa-table-cells-large text-xs" aria-hidden="true"></i>
+					<span class="hidden sm:inline">{m.portals()}</span>
+				</a>
+			{/if}
+			{#if !data?.user?.is_third_party}
+				<button
+					onclick={() => commandPalette?.toggle()}
+					aria-label={m.search()}
+					data-testid="command-palette-trigger"
+					class="flex h-9 items-center gap-2 shrink-0 rounded-md border border-surface-200-800 bg-surface-50-950 px-3
+		text-[13px] text-surface-600-400 hover:bg-surface-100-900 hover:text-surface-950-50 transition-colors cursor-pointer"
+				>
+					<i class="fa-solid fa-magnifying-glass text-xs" aria-hidden="true"></i>
+					<span class="hidden sm:inline">{m.searchEllipsis()}</span>
+					<kbd
+						class="hidden sm:inline-flex items-center rounded border border-surface-200-800 bg-surface-100-900 px-1.5 py-0.5
+			font-mono text-[10px] text-surface-500">{modifierKey}K</kbd
+					>
+				</button>
+			{/if}
+			{#if data?.user?.is_admin && data?.settings?.show_get_started !== false}
+				<button
+					onclick={() => getStartedTrigger.set(true)}
+					class="flex h-9 shrink-0 items-center gap-2 rounded-md bg-primary-500 px-3 text-[13px] font-semibold text-white
+		hover:bg-primary-600 transition-colors cursor-pointer"
+				>
+					<i class="fa-solid fa-rocket text-xs" aria-hidden="true"></i>
+					{m.getStarted()}
+				</button>
+			{/if}
+		</div>
+	</header>
 	<!-- Router Slot -->
 	{#if !data?.user?.is_third_party}
 		<CommandPalette bind:this={commandPalette} />
@@ -250,8 +224,28 @@
 	{#if $page.data.featureflags?.chat_mode}
 		<ChatWidget />
 	{/if}
-	<main class="p-8 transition-all duration-300 {classesSidebarOpen(sidebarOpen)}">
-		{@render children?.()}
+	<main class="transition-all duration-300 {classesSidebarOpen(sidebarOpen)}">
+		<div class="workspace-page mx-auto">
+			{#if displayTitle}
+				<header class="mb-6 border-b border-surface-200-800 pb-6 sm:mb-8 sm:pb-8">
+					{#if displayModelName}
+						<p class="eyebrow mb-2">{safeTranslate(displayModelName)}</p>
+					{/if}
+					<h1
+						class="text-4xl font-medium tracking-[-0.035em] text-surface-950-50 sm:text-5xl"
+						id="page-title"
+					>
+						{safeTranslate(displayTitle)}
+					</h1>
+					{#if displayModelDescription}
+						<p class="mt-2 max-w-2xl text-sm leading-6 text-surface-600-400">
+							{safeTranslate(displayModelDescription)}
+						</p>
+					{/if}
+				</header>
+			{/if}
+			{@render children?.()}
+		</div>
 	</main>
 	<!-- ---- / ---- -->
 </div>

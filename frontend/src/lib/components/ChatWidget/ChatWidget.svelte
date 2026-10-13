@@ -687,10 +687,10 @@
 		transition:scale={{ duration: 150 }}
 		onclick={handleOpen}
 		class="fixed bottom-6 right-6 z-950 flex h-14 w-14 items-center justify-center rounded-full
-			bg-gradient-to-br from-violet-600 to-purple-700 text-white shadow-lg
+			bg-gradient-to-br from-primary-500 to-primary-700 text-white shadow-lg
 			transition-transform hover:scale-110 active:scale-95"
 		aria-label="Open chat assistant"
-		title="CISO Assistant"
+		title="10A GRC Lab"
 	>
 		<i class="fa-solid fa-comments text-lg"></i>
 		{#if !hasBeenOpened}
@@ -713,14 +713,14 @@
 	>
 		<!-- Header -->
 		<div
-			class="flex items-center justify-between bg-gradient-to-r from-violet-600 to-purple-700 px-4 py-3"
+			class="flex items-center justify-between bg-gradient-to-r from-primary-500 to-primary-700 px-4 py-3"
 		>
 			<div class="flex items-center gap-2.5">
 				<div class="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
 					<i class="fa-solid fa-robot text-sm text-white"></i>
 				</div>
 				<div>
-					<div class="text-sm font-semibold text-white">CISO Assistant</div>
+					<div class="text-sm font-semibold text-white">10A GRC Lab</div>
 					<div class="text-xs text-violet-200">{m.chatSubtitle()}</div>
 				</div>
 			</div>
@@ -804,7 +804,7 @@
 		<div
 			role="dialog"
 			aria-modal="true"
-			aria-label="CISO Assistant Chat"
+			aria-label="10A GRC Lab Chat"
 			class="flex h-[90vh] w-full max-w-6xl overflow-hidden rounded-2xl bg-surface-50-950 shadow-2xl"
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
@@ -871,14 +871,14 @@
 			<div class="flex flex-1 flex-col overflow-hidden">
 				<!-- Header -->
 				<div
-					class="flex items-center justify-between bg-gradient-to-r from-violet-600 to-purple-700 px-5 py-4"
+					class="flex items-center justify-between bg-gradient-to-r from-primary-500 to-primary-700 px-5 py-4"
 				>
 					<div class="flex items-center gap-3">
 						<div class="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
 							<i class="fa-solid fa-robot text-white"></i>
 						</div>
 						<div>
-							<div class="font-semibold text-white">CISO Assistant</div>
+							<div class="font-semibold text-white">10A GRC Lab</div>
 							<div class="text-sm text-violet-200">{m.chatSubtitle()}</div>
 						</div>
 					</div>

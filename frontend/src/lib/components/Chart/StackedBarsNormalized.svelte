@@ -54,9 +54,9 @@
 
 			const grid = {
 				left: 150,
-				right: 10,
-				top: 80,
-				bottom: 50
+				right: 8,
+				top: 72,
+				bottom: 8
 			};
 
 			// Map the internal names to translated labels
@@ -82,12 +82,15 @@
 					name,
 					type: 'bar',
 					stack: 'total',
-					barWidth: '70%',
+					barWidth: 20,
 					label: {
 						show: true,
+						color: '#1c0d05',
+						fontSize: 11,
+						// Only label segments wide enough to hold the text; the tooltip carries the rest.
 						formatter: (params) => {
 							const percentage = Math.round(params.value * 100);
-							return percentage < 1 ? '' : percentage + '%';
+							return percentage < 8 ? '' : percentage + '%';
 						}
 					},
 					data: rawData.map((audit, auditIdx) =>
@@ -101,12 +104,12 @@
 				el,
 				() => ({
 					color: colors,
-					title: { text: title },
+					title: { text: title, left: 0, top: 0 },
 					legend: {
 						selectedMode: false,
 						formatter: (name) => getSeriesLabel(name),
-						top: 35,
-						left: 'center'
+						top: 32,
+						left: 0
 					},
 					grid,
 					xAxis: {
@@ -131,9 +134,14 @@
 							type: 'shadow'
 						},
 						formatter: (params) => {
-							// Find the index of the hovered item and show full name
 							const index = params[0].dataIndex;
-							return names[index];
+							const rows = params
+								.map(
+									(p) =>
+										`<div style="display:flex;gap:12px;justify-content:space-between">${p.marker}${getSeriesLabel(p.seriesName)}<b>${Math.round(p.value * 100)}%</b></div>`
+								)
+								.join('');
+							return `<div style="font-weight:600;margin-bottom:4px">${names[index]}</div>${rows}`;
 						}
 					}
 				}),

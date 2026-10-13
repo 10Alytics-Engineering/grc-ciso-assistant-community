@@ -19,18 +19,12 @@
 		raw = false
 	}: Props = $props();
 
-	// Enhanced emphasis styling
-	const emphasisClasses = emphasis
-		? 'border-l-4 border-l-violet-500 bg-surface-50-950 shadow-md'
-		: 'border border-surface-200-800';
-
-	// Base card styling - clean and minimal
+	// Admin-panel KPI cell: bordered, flat, label above a display number. Emphasis is a small
+	// brand marker on the label rather than a coloured side bar.
 	const baseCardClasses = `
-		flex flex-col h-20 p-3 bg-surface-50-950 rounded-lg
-		transition-all duration-200 ease-in-out
-		group cursor-pointer
-		hover:shadow-lg hover:shadow-violet-100/50 dark:hover:shadow-violet-900/30 hover:-translate-y-0.5
-		${emphasisClasses} ${customClass}
+		flex flex-col justify-between p-4 rounded-xl border border-surface-200-800
+		bg-surface-50-950 transition-colors group cursor-pointer hover:bg-surface-100-900
+		${customClass}
 	`;
 
 	// Format count with proper formatting for numbers, percentages, and ratios
@@ -53,17 +47,21 @@
 </script>
 
 {#snippet cardContent()}
-	<div class="flex-1 flex flex-col justify-center">
-		<div
-			class="text-2xl font-bold text-surface-950-50 leading-none mb-1 group-hover:text-violet-700 dark:group-hover:text-violet-400 transition-colors duration-200"
+	<p class="label-caps flex items-start gap-1.5">
+		{#if emphasis}
+			<span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary-500" aria-hidden="true"></span>
+		{/if}
+		<span class="line-clamp-2">{label}</span>
+	</p>
+	<div class="mt-2 flex items-end justify-between gap-2">
+		<span
+			class="text-3xl font-medium leading-none tabular-nums text-surface-950-50"
+			style="font-family: var(--typo-heading--font-family)">{formattedCount()}</span
 		>
-			{formattedCount()}
-		</div>
-		<div
-			class="text-xs font-medium text-surface-600-400 capitalize group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors duration-200"
-		>
-			{label}
-		</div>
+		<i
+			class="fa-solid fa-arrow-right text-[11px] text-surface-400-600 transition-transform group-hover:translate-x-0.5 group-hover:text-primary-600-400"
+			aria-hidden="true"
+		></i>
 	</div>
 {/snippet}
 

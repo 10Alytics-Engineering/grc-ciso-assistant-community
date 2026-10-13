@@ -36,7 +36,7 @@
 	>
 		<div class="flex items-center gap-3">
 			<!-- Brand mark: overridable on the PRO plan (branding) -->
-			<img src="/favicon.ico" alt="" class="h-7 w-7" />
+			<img src="/favicon.svg" alt="" class="h-7 w-7" />
 			<!-- Portal switcher -->
 			<div class="relative">
 				<button

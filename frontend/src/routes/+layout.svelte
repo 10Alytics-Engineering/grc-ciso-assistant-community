@@ -110,7 +110,7 @@
 	});
 </script>
 
-<svelte:head><link rel="icon" href="/favicon.ico" /></svelte:head>
+<svelte:head><link rel="icon" href="/favicon.svg" type="image/svg+xml" /></svelte:head>
 <Dialog components={modalRegistry} />
 <Toast zIndex="z-[1000]" />
 {@render children?.()}

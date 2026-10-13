@@ -53,12 +53,12 @@
 	});
 </script>
 
-<ol class="flex items-center gap-4 h-6 overflow-hidden whitespace-nowrap">
+<ol class="flex items-center gap-2 h-6 overflow-hidden whitespace-nowrap">
 	{#each $breadcrumbs as c, i}
 		{#if i == $breadcrumbs.length - 1}
 			<li>
 				<span
-					class="max-w-[64ch] overflow-hidden whitespace-nowrap text-ellipsis text-sm text-surface-600-400 font-semibold antialiased"
+					class="max-w-[64ch] overflow-hidden whitespace-nowrap text-ellipsis text-[13px] text-surface-950-50 font-semibold antialiased"
 					data-testid="crumb-item"
 					title={safeTranslate(c.label)}
 				>
@@ -72,7 +72,7 @@
 			<li>
 				{#if c.href}
 					<a
-						class="max-w-[64ch] block overflow-hidden whitespace-nowrap text-ellipsis text-sm font-semibold antialiased hover:text-primary-500"
+						class="max-w-[64ch] block overflow-hidden whitespace-nowrap text-ellipsis text-[13px] font-medium text-surface-600-400 antialiased hover:text-surface-950-50"
 						data-testid="crumb-item"
 						href={c.href}
 						title={safeTranslate(c.label)}
@@ -85,7 +85,7 @@
 					</a>
 				{:else}
 					<span
-						class="max-w-[64ch] overflow-hidden whitespace-nowrap text-ellipsis text-sm text-surface-600-400 font-semibold antialiased"
+						class="max-w-[64ch] overflow-hidden whitespace-nowrap text-ellipsis text-[13px] text-surface-600-400 font-medium antialiased"
 						data-testid="crumb-item"
 						title={safeTranslate(c.label)}
 					>

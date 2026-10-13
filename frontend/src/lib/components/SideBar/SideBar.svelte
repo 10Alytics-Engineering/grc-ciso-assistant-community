@@ -325,15 +325,16 @@
 
 <div data-testid="sidebar" class="sidebar">
 	<aside
-		class="flex w-64 shadow transition-all duration-300 fixed h-screen overflow-visible top-0 left-0 z-20 {classesSidebarOpen(
+		class="flex w-64 border-r border-surface-200-800 transition-all duration-300 fixed h-screen overflow-visible top-0 left-0 z-20 {classesSidebarOpen(
 			open
 		)}"
+		aria-label="Primary navigation"
 	>
-		<nav class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden bg-surface-50-950 py-4 px-3">
+		<div class="flex-1 flex flex-col min-h-0 overflow-x-hidden bg-surface-50-950">
 			<SideBarHeader />
 			<SideBarNavigation {sideBarVisibleItems} />
 			<SideBarFooter on:getStarted={modalFirstLogin} />
-		</nav>
+		</div>
 	</aside>
 	{#if $loading}
 		<div

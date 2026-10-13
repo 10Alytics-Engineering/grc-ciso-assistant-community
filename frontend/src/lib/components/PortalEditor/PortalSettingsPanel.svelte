@@ -81,7 +81,7 @@
 					<span class="block text-surface-600-400">{m.accentColor()}</span>
 					<input
 						type="color"
-						value={$settingsData.branding.accent_color || '#7c3aed'}
+						value={$settingsData.branding.accent_color || '#da6728'}
 						oninput={(e) => ($settingsData.branding.accent_color = e.currentTarget.value)}
 						class="input h-10 rounded-md p-1"
 					/>

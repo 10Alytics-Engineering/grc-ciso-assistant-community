@@ -101,7 +101,7 @@
 							<QR
 								data={data.totp.totp_url.replace(
 									/issuer=[^&]+/,
-									'issuer=' + encodeURIComponent('CISO Assistant')
+									'issuer=' + encodeURIComponent('10A GRC Lab')
 								)}
 								moduleFill="black"
 								anchorInnerFill="black"
