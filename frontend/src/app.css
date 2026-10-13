@@ -207,7 +207,10 @@ ul.options.portaled-options > li:not(.active):hover {
 				color-mix(in oklab, var(--color-primary-500) 4.5%, transparent),
 				transparent 25rem
 			),
-			linear-gradient(color-mix(in oklab, var(--color-surface-200) 45%, transparent) 1px, transparent 1px)
+			linear-gradient(
+					color-mix(in oklab, var(--color-surface-200) 45%, transparent) 1px,
+					transparent 1px
+				)
 				0 0 / 100% 2.75rem,
 			var(--color-surface-100);
 	}
@@ -218,7 +221,10 @@ ul.options.portaled-options > li:not(.active):hover {
 				color-mix(in oklab, var(--color-primary-500) 4.5%, transparent),
 				transparent 25rem
 			),
-			linear-gradient(color-mix(in oklab, var(--color-surface-800) 35%, transparent) 1px, transparent 1px)
+			linear-gradient(
+					color-mix(in oklab, var(--color-surface-800) 35%, transparent) 1px,
+					transparent 1px
+				)
 				0 0 / 100% 2.75rem,
 			#0b0d0f;
 	}
@@ -289,6 +295,8 @@ ul.options.portaled-options > li:not(.active):hover {
 		opacity: 0.13;
 		background-image: linear-gradient(rgba(255, 255, 255, 0.3) 1px, transparent 1px);
 		background-size: 100% 3rem;
+		/* fade the ruled lines out toward the edges so they read as texture, not a table */
+		mask-image: radial-gradient(ellipse at 60% 40%, black 20%, transparent 75%);
 		pointer-events: none;
 	}
 	.auth-note > * {
@@ -302,6 +310,32 @@ ul.options.portaled-options > li:not(.active):hover {
 		line-height: 0.95;
 		letter-spacing: -0.055em;
 	}
+	.auth-note__accent {
+		background: linear-gradient(100deg, #f0a46a 0%, #dc6900 60%);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+	.auth-note__pillars {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		font-size: 0.8125rem;
+		color: rgb(255 255 255 / 0.75);
+	}
+	.auth-note__pillars li {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.45rem 0.85rem;
+		border: 1px solid rgb(255 255 255 / 0.1);
+		border-radius: 999px;
+		background: rgb(255 255 255 / 0.04);
+		backdrop-filter: blur(6px);
+	}
+	.auth-note__pillars i {
+		color: #f0a46a;
+	}
 	.auth-panel {
 		display: grid;
 		place-items: center;
@@ -314,23 +348,10 @@ ul.options.portaled-options > li:not(.active):hover {
 			),
 			transparent;
 	}
-	.auth-panel__mark {
-		display: grid;
-		width: 3.75rem;
-		height: 3.75rem;
-		margin-bottom: 2.25rem;
-		place-items: center;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 999px;
-		background: var(--color-surface-50-950);
-		box-shadow:
-			0 0 0 0.4rem color-mix(in oklab, var(--color-primary-500) 6%, transparent),
-			0 12px 30px rgb(0 0 0 / 0.07);
-	}
 	.auth-panel h2 {
-		font-size: clamp(2.5rem, 5vw, 3.5rem);
+		font-size: clamp(2rem, 3vw, 2.5rem);
 		font-weight: 500;
-		line-height: 1;
+		line-height: 1.05;
 		letter-spacing: -0.04em;
 	}
 	@media (max-width: 1023px) {

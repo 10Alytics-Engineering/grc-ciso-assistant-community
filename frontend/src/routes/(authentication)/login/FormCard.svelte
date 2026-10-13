@@ -26,6 +26,8 @@
 
 	let { data, form }: Props = $props();
 
+	let showPassword = $state(false);
+
 	const modalStore: ModalStore = getModalStore();
 
 	function modalMFAAuthenticate(): void {
@@ -94,9 +96,34 @@
 			validators={zod(loginSchema)}
 			action="?/login&next={page.url.searchParams.get('next') || '/'}"
 		>
-			{#snippet children({ form })}
-				<TextField type="email" {form} field="username" label={m.email()} />
-				<TextField type="password" {form} field="password" label={m.password()} />
+			{#snippet children({ form, delayed })}
+				<TextField
+					type="email"
+					{form}
+					field="username"
+					label={m.email()}
+					class="h-11"
+					autocomplete="username"
+				/>
+				<div class="relative">
+					<TextField
+						type={showPassword ? 'text' : 'password'}
+						{form}
+						field="password"
+						label={m.password()}
+						class="h-11 pr-11"
+						autocomplete="current-password"
+					/>
+					<button
+						type="button"
+						class="absolute right-0 bottom-0 grid h-11 w-11 place-items-center text-surface-500 hover:text-surface-950-50"
+						aria-label="{showPassword ? m.hide() : m.show()} {m.password()}"
+						aria-pressed={showPassword}
+						onclick={() => (showPassword = !showPassword)}
+					>
+						<i class="fa-regular {showPassword ? 'fa-eye-slash' : 'fa-eye'}" aria-hidden="true"></i>
+					</button>
+				</div>
 				<div class="flex flex-row justify-end">
 					<a
 						href="/password-reset"
@@ -107,10 +134,22 @@
 					</a>
 				</div>
 				<button
-					class="btn preset-filled-primary-500 h-11 w-full font-semibold"
+					class="btn preset-filled-primary-500 group h-11 w-full font-semibold"
 					data-testid="login-btn"
-					type="submit">{m.login()}</button
+					type="submit"
+					disabled={delayed}
 				>
+					{#if delayed}
+						<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
+						{m.loading()}…
+					{:else}
+						{m.login()}
+						<i
+							class="fa-solid fa-arrow-right text-xs transition-transform group-hover:translate-x-0.5"
+							aria-hidden="true"
+						></i>
+					{/if}
+				</button>
 			{/snippet}
 		</SuperForm>
 		{#if data.SSOInfo.is_enabled}
