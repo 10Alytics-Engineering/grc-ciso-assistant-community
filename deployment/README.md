@@ -53,10 +53,57 @@ potential loss. Managed Postgres backups do not include uploads. Before every
 upgrade, take a logical database backup and archive `/opt/ciso/db` together.
 Keep copies off the droplet and periodically test restores.
 
-To release, record the previous tag and backup, update TAG, then run
-`docker compose pull && docker compose up -d`. An image rollback does not undo
-migrations; schema-changing rollback also requires the matching database backup.
-Never restore an entire shared cluster over live applications to roll back this lab.
+## Automatic releases from main
+
+Every push to `main` runs **Build/Push Canary Images - CE**. The workflow builds
+both images with a unique date/commit/run/attempt tag and deploys them to
+`https://grc.10alytics.io`. Manual runs from `main` also deploy; canary tags and
+runs from other branches only publish images. A failed build never deploys.
+The existing application test workflows run on pull requests; they are not a
+separate gate for direct pushes to `main`.
+
+The GitHub `production` environment must allow only the `main` branch and contain:
+
+- Variable `GRC_DEPLOY_HOST`: the droplet IP or hostname.
+- Secret `GRC_DEPLOY_SSH_KEY`: a dedicated SSH private key authorized for root on
+  the droplet. Authorize its public key with the `restrict` option, which disables
+  forwarding and PTYs. This key can update the application and is privileged;
+  keep it scoped to the production environment.
+- Secret `GRC_DEPLOY_KNOWN_HOSTS`: the droplet's verified SSH host key entry.
+  Obtain the host key through an already trusted connection, never an unverified
+  `ssh-keyscan` during deployment.
+
+No permanent registry token is stored on the server. The deploy job sends its
+short-lived, read-packages GitHub token over SSH and removes the temporary Docker
+credential directory on exit. Application/database/email secrets stay in
+`/opt/ciso/.env`.
+
+Releases are serialized without cancelling an active deployment. An older build
+is skipped if a newer commit has already reached `main`. A server-side lock also
+prevents concurrent deployment scripts. The release files are staged beneath
+`/opt/ciso/releases/<tag>` before `deployment/deploy.sh`:
+
+1. Validates configuration and pulls images while the old release remains online.
+2. Briefly stops the app and worker, dumps only `grc_pool_lab`, and archives the
+   uploads/queue and configuration under `/opt/ciso/backups/auto-<timestamp>-<tag>`.
+   It checks the dump's table of contents and archive readability before proceeding.
+3. Updates `TAG`, applies database migrations explicitly, and recreates services.
+4. Waits for container health, checks public HTTPS for the API and frontend, and
+   verifies no migrations remain pending. The successful tag is written to
+   `/opt/ciso/deployed-tag` and GitHub records the production deployment result.
+5. Retains the previous release images and seven automatic backup directories.
+
+Expect a short maintenance window during the backup, migration and restart.
+Inspect failures in the workflow's **Deploy GRC Lab** job. Before migrations start,
+a failure resumes the old services. Once migrations may have run, no automatic
+image rollback is attempted: inspect the error and restore the matching database,
+`db` archive and configuration if required. An image rollback cannot undo schema
+changes. Never restore an entire shared cluster over other live applications.
+Automatic backups live on the droplet; retain off-server copies and test restores
+as described above. This is not a replacement for off-site recovery.
+
+For a manual release, record the previous tag and take matching backups, update
+`TAG`, then run `docker compose pull && docker compose up -d`.
 
 The modified source is in the public 10Alytics repository, linked from the login
 page. No AGPL notices or source files are removed.

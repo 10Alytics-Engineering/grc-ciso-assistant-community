@@ -3,13 +3,14 @@ permissions:
   contents: read
 on:
   push:
+    branches: [main]
     tags:
       - "canary-*"
   workflow_dispatch:
-# Cancel older in-progress runs for the same PR or the same ref (branch)
+# Never interrupt a release while it is backing up or migrating production.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 env:
   UBUNTU_VERSION: "ubuntu-24.04"
 jobs:
@@ -25,12 +26,17 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+      - name: Validate deployment scripts
+        run: |
+          bash -n deployment/deploy.sh
+          shellcheck deployment/deploy.sh
+          python3 -m unittest discover -s deployment -p 'test_*.py' -v
       - name: Generate version
         id: version
         shell: bash
         run: |
           set -euo pipefail
-          CANARY_VERSION="canary-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)"
+          CANARY_VERSION="canary-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           echo "version=${CANARY_VERSION}" >> "$GITHUB_OUTPUT"
           echo "build=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
           echo "repository=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
@@ -234,3 +240,85 @@ jobs:
             image.tar.gz.sha256
           compression-level: 0
           retention-days: 3
+
+  deploy:
+    name: Deploy GRC Lab
+    needs: [prepare, merge-manifests]
+    if: github.repository == '10Alytics-Engineering/grc-ciso-assistant-community' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+    environment:
+      name: production
+      url: https://grc.10alytics.io
+    concurrency:
+      group: grc-production
+      cancel-in-progress: false
+    env:
+      DEPLOY_HOST: ${{ vars.GRC_DEPLOY_HOST }}
+      RELEASE_TAG: ${{ needs.prepare.outputs.version }}
+    steps:
+      - name: Checkout release
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Check release is still the main branch tip
+        id: current
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          latest=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)
+          if [[ "$latest" == "$GITHUB_SHA" ]]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "A newer commit is on main; its workflow will deploy instead." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Configure deployment SSH key
+        if: steps.current.outputs.deploy == 'true'
+        env:
+          DEPLOY_KEY: ${{ secrets.GRC_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.GRC_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          [[ "$DEPLOY_HOST" =~ ^[a-zA-Z0-9.-]+$ ]]
+          [[ "$RELEASE_TAG" =~ ^canary-[a-zA-Z0-9-]+$ ]]
+          test -n "$DEPLOY_KEY"
+          test -n "$KNOWN_HOSTS"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/grc_deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/grc_deploy ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host grc-production
+            HostName $DEPLOY_HOST
+            User root
+            IdentityFile ~/.ssh/grc_deploy
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            ConnectTimeout 15
+            ServerAliveInterval 30
+            ServerAliveCountMax 10
+          EOF
+      - name: Stage release files
+        if: steps.current.outputs.deploy == 'true'
+        run: |
+          set -euo pipefail
+          ssh grc-production "install -d -m 700 /opt/ciso/releases/$RELEASE_TAG"
+          scp deployment/compose.yml deployment/Caddyfile deployment/deploy.sh \
+            "grc-production:/opt/ciso/releases/$RELEASE_TAG/"
+      - name: Back up and deploy
+        if: steps.current.outputs.deploy == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$GH_TOKEN" | ssh grc-production \
+            "bash /opt/ciso/releases/$RELEASE_TAG/deploy.sh '$RELEASE_TAG' '$GITHUB_ACTOR'"
+          echo "Deployed $GITHUB_SHA as $RELEASE_TAG to https://grc.10alytics.io" >> "$GITHUB_STEP_SUMMARY"
+      - name: Remove runner SSH credentials
+        if: always()
+        run: rm -f ~/.ssh/grc_deploy
