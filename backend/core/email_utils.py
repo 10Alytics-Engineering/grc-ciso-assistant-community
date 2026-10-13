@@ -8,7 +8,9 @@ from pathlib import Path
 from string import Template
 from typing import Dict, Optional
 from django.conf import settings
+from django.template.loader import render_to_string
 from django.utils.html import escape as html_escape
+from django.utils.safestring import mark_safe
 from django.utils.translation import get_language
 from core.utils import yaml_safe_load
 from global_settings.models import GlobalSettings
@@ -292,11 +294,74 @@ def render_email_template(
         body = Template(template_data["body"]).safe_substitute(full_context)
         html_body_raw = Template(template_data["body"]).safe_substitute(html_context)
         html_body = markdown_to_html(html_body_raw)
+        action_key = {
+            "password_reset": "reset_password_url",
+            "welcome": "set_password_url",
+            "welcome_sso": "ciso_assistant_url",
+            "questionnaire_assignment": "questionnaire_url",
+        }.get(template_name)
+        html_body = brand_email_html(
+            html_body,
+            subject,
+            locale,
+            full_context.get(action_key) if action_key else None,
+        )
 
         return {"subject": subject, "body": body, "html_body": html_body}
     except Exception as e:
         logger.error(f"Error rendering template {template_name}: {str(e)}")
         return {}
+
+
+def brand_email_html(content, subject, locale=None, action_url=None):
+    """Apply the shared 10Alytics email shell to already-rendered Markdown."""
+    app_url = settings.CISO_ASSISTANT_URL.rstrip("/")
+    if action_url:
+        href = f'href="{html_escape(str(action_url))}"'
+        content = content.replace(
+            href,
+            'class="email-btn" style="display:inline-block; padding:12px 18px; '
+            "border-radius:11px; background-color:#dc6900; color:#ffffff; "
+            "font-size:14.5px; line-height:21px; font-weight:500; "
+            'text-decoration:none; border:1px solid rgba(0,0,0,0.09);" ' + href,
+            1,
+        )
+    styles = {
+        "p": "margin:0 0 18px; color:#5b616d;",
+        "h1": "margin:0 0 22px; font-size:28px; line-height:34px; color:#111111;",
+        "h2": "margin:0 0 22px; font-size:26px; line-height:32px; color:#111111;",
+        "h3": "margin:0 0 18px; font-size:20px; line-height:26px; color:#111111;",
+        "a": "color:#dc6900; text-decoration:underline; overflow-wrap:anywhere;",
+    }
+
+    def inline_style(match):
+        tag, attrs = match.group(1), match.group(2) or ""
+        if re.search(r"\bstyle\s*=", attrs):
+            return match.group(0)
+        return f'<{tag}{attrs} style="{styles[tag]}">'
+
+    content = re.sub(r"<(p|h1|h2|h3|a)(\s[^>]*?)?>", inline_style, content)
+    socials = [
+        {"name": name, "icon": f"social-{icon}.png", "url": url}
+        for name, icon, url in [
+            ("X", "x", "https://x.com/10alytics"),
+            ("Instagram", "instagram", "https://www.instagram.com/10alytics"),
+            ("LinkedIn", "linkedin", "https://www.linkedin.com/company/10alytics"),
+            ("YouTube", "youtube", "https://www.youtube.com/@10alytics"),
+            ("Facebook", "facebook", "https://www.facebook.com/10alytics"),
+        ]
+    ]
+    return render_to_string(
+        "emails/layout.html",
+        {
+            "subject": subject,
+            "language": _language_code(locale or get_language()),
+            "content": mark_safe(content),
+            "app_url": app_url,
+            "images_url": f"{app_url}/images/email",
+            "socials": socials,
+        },
+    )
 
 
 def format_control_list(controls) -> str:
