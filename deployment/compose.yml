@@ -1,0 +1,63 @@
+name: grc
+x-django: &django
+  image: ghcr.io/10alytics-engineering/grc-ciso-assistant-community/backend:${TAG:?Set TAG}
+  env_file: .env
+  restart: unless-stopped
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  tmpfs: ["/tmp:rw,noexec,nosuid,nodev,size=256m"]
+  volumes: ["./db:/code/db"]
+  user: "1001:1001"
+  logging: &logging
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+services:
+  backend:
+    <<: *django
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://backend:8000/api/health/', timeout=5)"]
+      interval: 15s
+      timeout: 10s
+      retries: 30
+      start_period: 180s
+  huey:
+    <<: *django
+    depends_on:
+      backend: {condition: service_healthy}
+    entrypoint: ["/bin/sh", "-c", "python manage.py run_huey -w 2 --scheduler-interval 60"]
+  frontend:
+    image: ghcr.io/10alytics-engineering/grc-ciso-assistant-community/frontend:${TAG:?Set TAG}
+    restart: unless-stopped
+    environment:
+      PUBLIC_BACKEND_API_URL: http://backend:8000/api
+      PUBLIC_BACKEND_API_EXPOSED_URL: https://${DOMAIN:?Set DOMAIN}/api
+      ORIGIN: https://${DOMAIN}
+      PROTOCOL_HEADER: x-forwarded-proto
+      HOST_HEADER: x-forwarded-host
+      NODE_OPTIONS: --max-old-space-size=1024
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs: ["/tmp:rw,noexec,nosuid,nodev,size=128m"]
+    depends_on:
+      backend: {condition: service_healthy}
+    logging: *logging
+  caddy:
+    image: caddy:2.11.4
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN}
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      backend: {condition: service_healthy}
+    logging: *logging
+volumes:
+  caddy_data:
+  caddy_config:

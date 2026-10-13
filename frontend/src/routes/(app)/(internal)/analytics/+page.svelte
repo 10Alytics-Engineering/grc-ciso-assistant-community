@@ -8,7 +8,7 @@
 	import TreemapChart from '$lib/components/Chart/TreemapChart.svelte';
 	import GroupedBarChart from '$lib/components/Chart/GroupedBarChart.svelte';
 	import HalfDonutChart from '$lib/components/Chart/HalfDonutChart.svelte';
-	import NightingaleChart from '$lib/components/Chart/NightingaleChart.svelte';
+	import CsfFunctionsChart from '$lib/components/Chart/CsfFunctionsChart.svelte';
 	import StackedBarsNormalized from '$lib/components/Chart/StackedBarsNormalized.svelte';
 	import IncidentMonthlyChart from '$lib/components/Chart/IncidentMonthlyChart.svelte';
 	import ExceptionSankeyChart from '$lib/components/Chart/ExceptionSankeyChart.svelte';
@@ -194,7 +194,7 @@
 </script>
 
 <Tabs value={group} onValueChange={(e) => handleTabChange(e.value)}>
-	<Tabs.List>
+	<Tabs.List class="px-4 pt-2">
 		<Tabs.Trigger value="summary">{m.summary()}</Tabs.Trigger>
 		<Tabs.Trigger value="governance">{m.governance()}</Tabs.Trigger>
 		<Tabs.Trigger value="risk">{m.risk()}</Tabs.Trigger>
@@ -274,9 +274,9 @@
 
 								<!-- CSF Functions Chart (2/5 of width) -->
 								<div class="xl:col-span-2">
-									<div class="bg-surface-50-950 rounded-lg p-4 h-80 border border-surface-200-800">
+									<div class="bg-surface-50-950 rounded-xl p-5 h-80 border border-surface-200-800">
 										{#if metrics.csf_functions}
-											<NightingaleChart name="nightingale" values={metrics.csf_functions} />
+											<CsfFunctionsChart values={metrics.csf_functions} />
 										{/if}
 									</div>
 								</div>
@@ -352,13 +352,13 @@
 								<div class="xl:col-span-3">
 									{#await data.stream.auditsMetrics}
 										<div
-											class="bg-surface-50-950 rounded-lg p-4 h-96 border border-surface-200-800 flex items-center justify-center"
+											class="bg-surface-50-950 rounded-xl p-5 h-96 border border-surface-200-800 flex items-center justify-center"
 										>
 											<LoadingSpinner />
 										</div>
 									{:then auditsMetrics}
 										<div
-											class="bg-surface-50-950 rounded-lg p-4 h-96 border border-surface-200-800"
+											class="bg-surface-50-950 rounded-xl p-5 h-96 border border-surface-200-800"
 										>
 											{#if auditsMetrics?.audits_stats?.data?.length > 0}
 												<StackedBarsNormalized
@@ -375,7 +375,7 @@
 										</div>
 									{:catch}
 										<div
-											class="bg-surface-50-950 rounded-lg p-4 h-96 border border-surface-200-800 flex items-center justify-center text-red-500"
+											class="bg-surface-50-950 rounded-xl p-5 h-96 border border-surface-200-800 flex items-center justify-center text-red-500"
 										>
 											<p>Error loading audits data</p>
 										</div>
@@ -420,7 +420,7 @@
 									{:then risksCountPerLevel}
 										<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 											<div
-												class="bg-surface-50-950 rounded-lg p-4 h-80 border border-surface-200-800"
+												class="bg-surface-50-950 rounded-xl p-5 h-80 border border-surface-200-800"
 											>
 												<HalfDonutChart
 													name="current_h"
@@ -430,7 +430,7 @@
 												/>
 											</div>
 											<div
-												class="bg-surface-50-950 rounded-lg p-4 h-80 border border-surface-200-800"
+												class="bg-surface-50-950 rounded-xl p-5 h-80 border border-surface-200-800"
 											>
 												<HalfDonutChart
 													name="residual_h"
@@ -468,10 +468,8 @@
 				{:then counters}
 					{#if counters}
 						<section id="stats" class="mb-6">
-							<span class="text-xl font-extrabold">{m.statistics()}</span>
-							<div
-								class="flex justify-between flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-4"
-							>
+							<h2 class="mb-3 text-xl font-medium">{m.statistics()}</h2>
+							<div class="stat-strip sm:grid-cols-3 xl:grid-cols-6">
 								<CounterCard
 									count={counters.domains}
 									label={m.domains()}
@@ -525,7 +523,7 @@
 					</div>
 				{:then combinedAssessmentsStatus}
 					{#if combinedAssessmentsStatus}
-						<section class="bg-surface-50-950 rounded-lg p-4 border border-surface-200-800 mb-6">
+						<section class="bg-surface-50-950 rounded-xl p-5 border border-surface-200-800 mb-6">
 							<GroupedBarChart
 								name="combined_assessments_status"
 								title={m.assessmentsPerStatus()}
@@ -581,7 +579,7 @@
 				<!-- Applied Controls Status and Assessments Status -->
 				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 					<!-- Applied Controls Status Donut -->
-					<div class="bg-surface-50-950 rounded-lg p-4 border border-surface-200-800">
+					<div class="bg-surface-50-950 rounded-xl p-5 border border-surface-200-800">
 						<h3 class="text-lg font-semibold text-surface-900-100 mb-4">
 							{m.appliedControlsStatus()}
 						</h3>
@@ -614,7 +612,7 @@
 					</div>
 
 					<!-- Findings Assessment Distribution -->
-					<div class="bg-surface-50-950 rounded-lg p-4 border border-surface-200-800">
+					<div class="bg-surface-50-950 rounded-xl p-5 border border-surface-200-800">
 						<h3 class="text-lg font-semibold text-surface-900-100 mb-4">
 							{m.findingsAssessmentDistribution()}
 						</h3>

@@ -218,7 +218,7 @@
 							symbol: 'none',
 							showSymbol: false,
 							lineStyle: {
-								color: '#4f46e5',
+								color: '#1a3b42',
 								width: 3
 							},
 							areaStyle: {
@@ -226,7 +226,7 @@
 								color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
 									{
 										offset: 0,
-										color: '#4f46e5'
+										color: '#1a3b42'
 									},
 									{
 										offset: 1,

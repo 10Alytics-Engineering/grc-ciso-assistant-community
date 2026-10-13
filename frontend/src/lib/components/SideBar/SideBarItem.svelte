@@ -15,8 +15,8 @@
 	// otherwise `/campaigns?kind=internal` would never highlight.
 	let classesActive = $derived((href: string) =>
 		href === page.url.pathname || href === `${page.url.pathname}${page.url.search}`
-			? 'bg-primary-100-900 text-primary-800-200'
-			: 'hover:bg-primary-50-950 text-surface-950-50 '
+			? 'sidebar-link sidebar-link--active'
+			: 'sidebar-link'
 	);
 </script>
 
@@ -26,18 +26,17 @@
 		<Anchor
 			href={item.href}
 			breadcrumbAction="replace"
-			class="unstyled flex whitespace-nowrap items-center py-2 text-sm font-normal rounded-base {classesActive(
-				item.href ?? ''
-			)}"
+			class="unstyled whitespace-nowrap {classesActive(item.href ?? '')}"
+			aria-current={classesActive(item.href ?? '').includes('active') ? 'page' : undefined}
 			data-testid={'accordion-item-' + item.href.substring(1)}
 		>
 			<span
-				class="px-4 flex items-center w-full space-x-2 text-xs"
+				class="flex items-center w-full gap-3 min-w-0"
 				id={item.key ?? item.name}
 				title={safeTranslate(item.name)}
 			>
-				<i class="{item.fa_icon} w-1/12"></i>
-				<span class="text-sm tracking-wide truncate">{safeTranslate(item.name)}</span>
+				<i class="{item.fa_icon} w-4 shrink-0 text-center text-xs" aria-hidden="true"></i>
+				<span class="truncate">{safeTranslate(item.name)}</span>
 			</span>
 		</Anchor>
 	{/if}

@@ -475,7 +475,7 @@
 		font-size: 13px;
 		font-weight: 600;
 		color: white;
-		background: linear-gradient(135deg, #7c3aed, #a855f7);
+		background: linear-gradient(135deg, #da6728, #f08a4b);
 		border: none;
 		cursor: pointer;
 		transition: all 0.15s ease;
@@ -483,7 +483,7 @@
 	}
 
 	.search-submit:hover {
-		background: linear-gradient(135deg, #6d28d9, #9333ea);
+		background: linear-gradient(135deg, #b85520, #da6728);
 		transform: translateY(-1px);
 		box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
 	}
@@ -522,7 +522,7 @@
 	.count-query {
 		font-size: 14px;
 		font-weight: 600;
-		color: #7c3aed;
+		color: #da6728;
 	}
 
 	.count-total {
@@ -558,14 +558,14 @@
 
 	.filter-chip:hover {
 		border-color: #c4b5fd;
-		color: #6d28d9;
+		color: #b85520;
 		background: #faf5ff;
 	}
 
 	.filter-chip.active {
-		background: #7c3aed;
+		background: #da6728;
 		color: white;
-		border-color: #7c3aed;
+		border-color: #da6728;
 		box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
 	}
 
@@ -861,7 +861,7 @@
 		font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, monospace;
 		font-size: 11px;
 		font-weight: 500;
-		color: #6d28d9;
+		color: #b85520;
 		box-shadow: 0 1px 0 #ddd6fe;
 	}
 

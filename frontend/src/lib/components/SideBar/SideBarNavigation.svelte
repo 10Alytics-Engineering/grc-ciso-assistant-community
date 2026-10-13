@@ -33,25 +33,25 @@
 	}
 </script>
 
-<nav class="grow scrollbar">
+<nav class="grow min-h-0 overflow-y-auto px-3 py-5 scrollbar" style="overscroll-behavior: contain">
 	<Accordion
 		value={$lastAccordionItem}
 		onValueChange={handleValueChange}
 		collapsible
-		class="space-y-4"
+		class="space-y-3"
 	>
 		{#each items as item}
 			{#if sideBarVisibleItems && sideBarVisibleItems[item.name] !== false && item.items.some((subItem) => sideBarVisibleItems[subItem.name] !== false)}
 				<Accordion.Item value={item.name} id={item.name.toLowerCase().replace(' ', '-')}>
-					<Accordion.ItemTrigger class="flex w-full items-center cursor-pointer">
+					<Accordion.ItemTrigger class="sidebar-section-label cursor-pointer">
 						<SideBarCategory {item} />
 						<Accordion.ItemIndicator
-							class="transition-transform duration-200 data-[state=open]:rotate-0 data-[state=closed]:-rotate-90 text-primary-700-300"
+							class="transition-transform duration-200 data-[state=open]:rotate-0 data-[state=closed]:-rotate-90"
 						>
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
-								width="14px"
-								height="14px"
+								width="10px"
+								height="10px"
 								viewBox="0 0 448 512"
 								fill="currentColor"
 							>
@@ -61,7 +61,7 @@
 							</svg>
 						</Accordion.ItemIndicator>
 					</Accordion.ItemTrigger>
-					<Accordion.ItemContent class="space-y-2">
+					<Accordion.ItemContent class="mt-1 space-y-0.5">
 						<SideBarItem item={item.items} {sideBarVisibleItems} />
 					</Accordion.ItemContent>
 				</Accordion.Item>

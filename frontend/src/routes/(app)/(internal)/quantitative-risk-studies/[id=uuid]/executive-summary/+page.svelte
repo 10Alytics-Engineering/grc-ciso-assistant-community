@@ -18,7 +18,7 @@
 </script>
 
 <svelte:head>
-	<title>{m.executiveSummary()} - CISO Assistant</title>
+	<title>{m.executiveSummary()} - 10A GRC Lab</title>
 </svelte:head>
 
 <main class="p-6 space-y-6">

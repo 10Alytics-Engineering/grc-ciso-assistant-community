@@ -18,6 +18,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
       build: ${{ steps.version.outputs.build }}
+      repository: ${{ steps.version.outputs.repository }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -32,6 +33,7 @@ jobs:
           CANARY_VERSION="canary-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)"
           echo "version=${CANARY_VERSION}" >> "$GITHUB_OUTPUT"
           echo "build=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "repository=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
 
   build-frontend:
     needs: prepare
@@ -44,8 +46,6 @@ jobs:
         include:
           - arch: amd64
             runner: ubuntu-24.04
-          - arch: arm64
-            runner: ubuntu-24.04-arm
     steps:
       - name: Checkout Repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -63,7 +63,7 @@ jobs:
         id: meta-frontend
         uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
-          images: ghcr.io/${{ github.repository }}/frontend
+          images: ghcr.io/${{ needs.prepare.outputs.repository }}/frontend
           tags: |
             type=raw,value=${{ needs.prepare.outputs.version }}
           labels: |
@@ -79,7 +79,7 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/frontend:${{ needs.prepare.outputs.version }}-${{ matrix.arch }}
+          tags: ghcr.io/${{ needs.prepare.outputs.repository }}/frontend:${{ needs.prepare.outputs.version }}-${{ matrix.arch }}
           platforms: linux/${{ matrix.arch }}
           labels: ${{ steps.meta-frontend.outputs.labels }}
           annotations: ${{ steps.meta-frontend.outputs.annotations }}
@@ -95,8 +95,6 @@ jobs:
         include:
           - arch: amd64
             runner: ubuntu-24.04
-          - arch: arm64
-            runner: ubuntu-24.04-arm
     steps:
       - name: Checkout Repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -127,7 +125,7 @@ jobs:
         id: meta-backend
         uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
-          images: ghcr.io/${{ github.repository }}/backend
+          images: ghcr.io/${{ needs.prepare.outputs.repository }}/backend
           tags: |
             type=raw,value=${{ needs.prepare.outputs.version }}
           labels: |
@@ -143,7 +141,7 @@ jobs:
           context: ./backend
           file: ./backend/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/backend:${{ needs.prepare.outputs.version }}-${{ matrix.arch }}
+          tags: ghcr.io/${{ needs.prepare.outputs.repository }}/backend:${{ needs.prepare.outputs.version }}-${{ matrix.arch }}
           platforms: linux/${{ matrix.arch }}
           labels: ${{ steps.meta-backend.outputs.labels }}
           annotations: ${{ steps.meta-backend.outputs.annotations }}
@@ -161,10 +159,10 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Create multi-arch manifests
+      - name: Publish release manifests
         shell: bash
         env:
-          REPO: ${{ github.repository }}
+          REPO: ${{ needs.prepare.outputs.repository }}
           VERSION: ${{ needs.prepare.outputs.version }}
           GIT_SHA: ${{ github.sha }}
         run: |
@@ -185,8 +183,7 @@ jobs:
             --annotation "index:org.opencontainers.image.created=$CREATED" \
             -t "ghcr.io/$REPO/frontend:$VERSION" \
             -t "ghcr.io/$REPO/frontend:canary" \
-            "ghcr.io/$REPO/frontend:$VERSION-amd64" \
-            "ghcr.io/$REPO/frontend:$VERSION-arm64"
+            "ghcr.io/$REPO/frontend:$VERSION-amd64"
 
           # Backend
           docker buildx imagetools create \
@@ -202,5 +199,4 @@ jobs:
             --annotation "index:org.opencontainers.image.created=$CREATED" \
             -t "ghcr.io/$REPO/backend:$VERSION" \
             -t "ghcr.io/$REPO/backend:canary" \
-            "ghcr.io/$REPO/backend:$VERSION-amd64" \
-            "ghcr.io/$REPO/backend:$VERSION-arm64"
+            "ghcr.io/$REPO/backend:$VERSION-amd64"

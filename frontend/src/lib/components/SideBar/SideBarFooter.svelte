@@ -34,6 +34,19 @@
 		modalStore.trigger(modal);
 	}
 
+	const user = page.data.user;
+	const initials = (
+		[user?.first_name, user?.last_name].filter(Boolean).join(' ') ||
+		user?.email ||
+		'10A'
+	)
+		.split(/\s|@/)
+		.filter(Boolean)
+		.map((part: string) => part[0])
+		.join('')
+		.slice(0, 2)
+		.toUpperCase();
+
 	let enableMoreBtn = $state(false);
 
 	onMount(() => {
@@ -50,22 +63,30 @@
 	});
 </script>
 
-<div class="border-t pt-2.5">
-	<div class="flex flex-row items-center justify-between">
-		<div class="flex flex-col w-3/4">
+<div class="shrink-0 border-t border-surface-200-800 p-3">
+	<div class="flex flex-row items-center justify-between gap-1">
+		<div class="flex min-w-0 flex-1 items-center gap-2 px-1">
 			{#if page.data.user}
 				<span
-					class="text-surface-950-50 text-sm whitespace-nowrap overflow-hidden truncate w-full"
-					data-testid="sidebar-user-name-display"
+					class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary-50-950 text-[11px] font-semibold text-primary-700-300"
+					aria-hidden="true"
 				>
-					{page.data.user.first_name}
-					{page.data.user.last_name}
+					{initials}
 				</span>
-				<span
-					class="font-normal text-xs whitespace-nowrap truncate text-surface-600-400 mr-2 w-full"
-					data-testid="sidebar-user-email-display"
-				>
-					{page.data.user.email}
+				<span class="min-w-0">
+					<span
+						class="block truncate text-xs font-semibold text-surface-950-50"
+						data-testid="sidebar-user-name-display"
+					>
+						{page.data.user.first_name}
+						{page.data.user.last_name}
+					</span>
+					<span
+						class="block truncate text-[11px] text-surface-600-400"
+						data-testid="sidebar-user-email-display"
+					>
+						{page.data.user.email}
+					</span>
 				</span>
 			{/if}
 		</div>

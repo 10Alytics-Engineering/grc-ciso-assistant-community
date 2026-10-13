@@ -179,7 +179,7 @@
 		backgroundColor = 'bg-surface-50-950',
 		color = '',
 		regionHead = '',
-		regionHeadCell = 'bg-surface-50-950 text-surface-700-300',
+		regionHeadCell = 'h-10 whitespace-nowrap bg-surface-100-900/60 text-[11px] font-semibold uppercase tracking-[0.12em] text-surface-600-400',
 		regionBody = 'bg-surface-50-950',
 		regionCell = 'max-w-[65ch] max-h-[8em] overflow-hidden hover:overflow-y-auto',
 		regionFoot = '',
@@ -1027,7 +1027,9 @@
 </script>
 
 <div class="card table-wrap {classesBase}" bind:this={tableWrapEl}>
-	<header class="flex items-center justify-between gap-2 px-2 h-16">
+	<header
+		class="flex items-center justify-between gap-2 border-b border-surface-200-800 bg-surface-100-900/40 px-3 py-2.5 min-h-14 sm:px-4"
+	>
 		{#if hasBatchActions && selectedIds.size > 0}
 			<BatchActionBar
 				{selectedIds}

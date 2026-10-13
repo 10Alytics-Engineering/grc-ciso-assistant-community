@@ -8,7 +8,7 @@
 	// Backend validates branding, but this is an unauthenticated surface — guard anyway.
 	const rawAccent = $derived(portal.branding?.accent_color);
 	const accent = $derived(
-		/^#[0-9a-f]{3,8}$|^rgba?\([\d.,\s/%]+\)$/i.test(rawAccent ?? '') ? rawAccent : '#7c3aed'
+		/^#[0-9a-f]{3,8}$|^rgba?\([\d.,\s/%]+\)$/i.test(rawAccent ?? '') ? rawAccent : '#da6728'
 	);
 	const logoUrl = $derived(
 		isSafeExternalUrl(portal.branding?.logo_url) ? portal.branding.logo_url : null

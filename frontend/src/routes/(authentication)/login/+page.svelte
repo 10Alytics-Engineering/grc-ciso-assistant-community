@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ActionData, PageData } from './$types';
 	import Logo from '$lib/components/Logo/Logo.svelte';
-	import Greetings from './Greetings.svelte';
+	import icon from '$lib/assets/10a-icon.svg';
 	import FormCard from './FormCard.svelte';
 	import { m } from '$paraglide/messages';
 
@@ -14,23 +14,43 @@
 </script>
 
 <svelte:head>
-	<title>CISO Assistant | {m.login()}</title>
+	<title>10A GRC Lab | {m.login()}</title>
 </svelte:head>
 
-<main class="lg:relative h-screen bg-surface-200-800">
-	<div class="lg:absolute top-5 lg:left-5 flex justify-center">
-		<div class="flex justify-center flex-row max-w-48 space-x-4 pb-3">
+<main class="auth-shell">
+	<section class="auth-note" aria-labelledby="workspace-heading">
+		<!-- .dark scopes the logo's dark: variant so the wordmark reads on this panel in both themes -->
+		<div class="dark flex items-center gap-4">
 			<Logo />
 		</div>
-	</div>
-	<div
-		class="lg:absolute lg:top-1/2 lg:left-1/2 w-full transform lg:-translate-x-1/2 lg:-translate-y-1/2"
-	>
-		<div class="flex flex-col lg:flex-row w-full lg:pr-8 space-y-4 lg:space-y-0 lg:space-x-4">
-			<Greetings />
-			<div class="flex justify-center lg:pr-5 items-center w-full lg:w-2/5">
+		<div>
+			<p class="mb-4 text-[11px] font-extrabold uppercase tracking-[0.18em] text-white/60">
+				Governance · Risk · Compliance
+			</p>
+			<h1 id="workspace-heading">
+				{m.yourStreamlined()}
+				{m.oneStopShop()}
+				{m.forComplianceRiskManagement()}
+			</h1>
+		</div>
+		<p class="text-xs tracking-[0.08em] text-white/60">10Alytics · 10A GRC Lab</p>
+	</section>
+
+	<section class="auth-panel" aria-labelledby="sign-in-heading">
+		<div class="w-[min(100%,26rem)]">
+			<div class="auth-panel__mark">
+				<img src={icon} alt="" class="h-9 w-9" />
+			</div>
+			<p class="eyebrow mb-4">10A GRC Lab</p>
+			<h2 id="sign-in-heading" class="text-surface-950-50">{m.logIntoYourAccount()}</h2>
+			<p class="mt-4 leading-relaxed text-surface-600-400">{m.youNeedToLogIn()}</p>
+			<div class="mt-7">
 				<FormCard {data} {form} />
+				<p class="mt-6 text-center text-xs text-surface-600-400">
+					Powered by CISO Assistant ·
+					<a class="underline" href="https://github.com/10Alytics-Engineering/grc-ciso-assistant-community" target="_blank" rel="noopener noreferrer">Source code (AGPL-3.0)</a>
+				</p>
 			</div>
 		</div>
-	</div>
+	</section>
 </main>

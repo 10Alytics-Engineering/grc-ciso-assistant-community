@@ -80,69 +80,49 @@
 	});
 </script>
 
-<div
-	class="flex flex-col w-7/8 lg:w-3/4 p-10 rounded-lg shadow-lg bg-surface-50-950 bg-opacity-[.90]"
->
-	<div data-testid="login" class="flex flex-col w-full items-center space-y-4">
-		{#if autoSSO}
-			<div class="bg-primary-300 px-6 py-5 rounded-full text-3xl">
-				<i class="fa-solid fa-circle-notch fa-spin"></i>
-			</div>
-			<p class="text-center text-surface-600-400 text-sm">{m.loginSSO()}…</p>
-		{:else}
-			<div class="bg-primary-300 px-6 py-5 rounded-full text-3xl">
-				<i class="fa-solid fa-right-to-bracket"></i>
-			</div>
-			<h3
-				class="font-bold leading-tight tracking-tight md:text-2xl bg-linear-to-r from-pink-500 to-violet-600 bg-clip-text text-transparent"
-			>
-				{m.logIntoYourAccount()}
-			</h3>
-			<p class="text-center text-surface-600-400 text-sm">
-				{m.youNeedToLogIn()}
-			</p>
-			<div class="w-full">
-				<!-- SuperForm with dataType 'form' -->
-				<SuperForm
-					class="flex flex-col space-y-3"
-					data={data?.form}
-					dataType="form"
-					validators={zod(loginSchema)}
-					action="?/login&next={page.url.searchParams.get('next') || '/'}"
-				>
-					{#snippet children({ form })}
-						<TextField type="email" {form} field="username" label={m.email()} />
-						<TextField type="password" {form} field="password" label={m.password()} />
-						<div class="flex flex-row justify-end">
-							<a
-								href="/password-reset"
-								class="flex items-center space-x-2 text-primary-800-200 hover:text-primary-600-400"
-								data-testid="forgot-password-btn"
-							>
-								<p class="">{m.forgtPassword()}?</p>
-							</a>
-						</div>
-						<p class="">
-							<button
-								class="btn preset-filled-primary-500 font-semibold w-full"
-								data-testid="login-btn"
-								type="submit">{m.login()}</button
-							>
-						</p>
-					{/snippet}
-				</SuperForm>
-			</div>
-			{#if data.SSOInfo.is_enabled}
-				<div class="flex items-center justify-center w-full space-x-2">
-					<hr class="w-64 items-center bg-surface-200-800 border-0" />
-					<span class="flex items-center text-surface-600-400 text-sm">{m.or()}</span>
-					<hr class="w-64 items-center bg-surface-200-800 border-0" />
+<div data-testid="login" class="flex w-full flex-col space-y-4">
+	{#if autoSSO}
+		<p class="flex items-center gap-3 text-sm text-surface-600-400">
+			<i class="fa-solid fa-circle-notch fa-spin text-primary-500" aria-hidden="true"></i>
+			{m.loginSSO()}…
+		</p>
+	{:else}
+		<SuperForm
+			class="flex flex-col space-y-3"
+			data={data?.form}
+			dataType="form"
+			validators={zod(loginSchema)}
+			action="?/login&next={page.url.searchParams.get('next') || '/'}"
+		>
+			{#snippet children({ form })}
+				<TextField type="email" {form} field="username" label={m.email()} />
+				<TextField type="password" {form} field="password" label={m.password()} />
+				<div class="flex flex-row justify-end">
+					<a
+						href="/password-reset"
+						class="text-sm text-primary-600-400 hover:underline"
+						data-testid="forgot-password-btn"
+					>
+						{m.forgtPassword()}?
+					</a>
 				</div>
 				<button
-					class="btn bg-linear-to-l from-violet-800 to-violet-400 text-white font-semibold w-1/2"
-					onclick={triggerSSO}>{m.loginSSO()}</button
+					class="btn preset-filled-primary-500 h-11 w-full font-semibold"
+					data-testid="login-btn"
+					type="submit">{m.login()}</button
 				>
-			{/if}
+			{/snippet}
+		</SuperForm>
+		{#if data.SSOInfo.is_enabled}
+			<div class="flex items-center gap-3 text-sm text-surface-600-400">
+				<hr class="flex-1 border-surface-200-800" />
+				{m.or()}
+				<hr class="flex-1 border-surface-200-800" />
+			</div>
+			<button
+				class="btn h-11 w-full border border-surface-200-800 bg-surface-50-950 font-semibold hover:bg-surface-100-900"
+				onclick={triggerSSO}>{m.loginSSO()}</button
+			>
 		{/if}
-	</div>
+	{/if}
 </div>

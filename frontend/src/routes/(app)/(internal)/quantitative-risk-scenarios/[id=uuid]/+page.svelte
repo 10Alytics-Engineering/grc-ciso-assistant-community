@@ -68,15 +68,15 @@
 										position: 'end',
 										formatter: `${m.lossThresholdLabel()}: ${currency}${lossThreshold.toLocaleString()}`,
 										fontSize: 12,
-										color: '#7c3aed',
+										color: '#da6728',
 										backgroundColor: 'rgba(255, 255, 255, 0.9)',
-										borderColor: '#7c3aed',
+										borderColor: '#da6728',
 										borderWidth: 1,
 										borderRadius: 4,
 										padding: [4, 8]
 									},
 									lineStyle: {
-										color: '#7c3aed',
+										color: '#da6728',
 										width: 2,
 										type: 'dashed'
 									},
