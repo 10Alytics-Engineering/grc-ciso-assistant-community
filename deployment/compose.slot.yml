@@ -3,6 +3,7 @@ x-django: &django
   env_file: .env
   environment:
     DJANGO_SETTINGS_MODULE: ciso_assistant.settings
+    ALLOWED_HOSTS: backend,backend-${SLOT},${DOMAIN}
   restart: unless-stopped
   read_only: true
   cap_drop: [ALL]
@@ -43,7 +44,7 @@ services:
       ORIGIN: https://${DOMAIN}
       PROTOCOL_HEADER: x-forwarded-proto
       HOST_HEADER: x-forwarded-host
-      NODE_OPTIONS: --max-old-space-size=768
+      NODE_OPTIONS: --max-old-space-size=1024
     read_only: true
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
