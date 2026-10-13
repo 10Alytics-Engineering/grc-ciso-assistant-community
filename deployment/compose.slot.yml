@@ -1,0 +1,78 @@
+x-django: &django
+  image: ghcr.io/10alytics-engineering/grc-ciso-assistant-community/backend:${TAG:?Set TAG}
+  env_file: .env
+  environment:
+    DJANGO_SETTINGS_MODULE: ciso_assistant.settings
+  restart: unless-stopped
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  tmpfs: ["/tmp:rw,noexec,nosuid,nodev,size=256m"]
+  volumes: ["./db:/code/db"]
+  user: "1001:1001"
+  stop_grace_period: 120s
+  logging: &logging
+    driver: json-file
+    options: {max-size: "10m", max-file: "3"}
+services:
+  backend:
+    <<: *django
+    # Migrations are checked by deploy.py. Never mutate the schema at startup.
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - >-
+        exec gunicorn --chdir ciso_assistant --bind :8000
+        --workers "$${GUNICORN_WORKERS:-2}" --timeout 100 --graceful-timeout 110
+        --keep-alive 30 --limit-request-line 5120 --env RUN_MAIN=true
+        ciso_assistant.wsgi:application
+    networks:
+      default:
+        aliases: ["backend-${SLOT:?Set SLOT}"]
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8000/api/health/', headers={'Host':'backend'}), timeout=5)"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 60s
+  frontend:
+    image: ghcr.io/10alytics-engineering/grc-ciso-assistant-community/frontend:${TAG:?Set TAG}
+    restart: unless-stopped
+    environment:
+      PUBLIC_BACKEND_API_URL: http://backend-${SLOT}:8000/api
+      PUBLIC_BACKEND_API_EXPOSED_URL: https://${DOMAIN:?Set DOMAIN}/api
+      ORIGIN: https://${DOMAIN}
+      PROTOCOL_HEADER: x-forwarded-proto
+      HOST_HEADER: x-forwarded-host
+      NODE_OPTIONS: --max-old-space-size=768
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs: ["/tmp:rw,noexec,nosuid,nodev,size=128m"]
+    stop_grace_period: 120s
+    depends_on:
+      backend: {condition: service_healthy}
+    networks:
+      default:
+        aliases: ["frontend-${SLOT}"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/login', {redirect:'manual'}).then(r=>process.exit(r.status===200?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+    logging: *logging
+  huey:
+    <<: *django
+    entrypoint: ["python", "manage.py", "run_huey", "-w", "2", "--scheduler-interval", "60"]
+    stop_signal: SIGINT
+    stop_grace_period: 300s
+    healthcheck:
+      test: ["CMD", "python", "-c", "import django; django.setup(); from huey.contrib.djhuey import HUEY; HUEY.pending_count()"]
+      interval: 30s
+      timeout: 60s
+      retries: 3
+      start_period: 60s
+# Each slot has a private network. deploy.py attaches only its web containers
+# to the proxy network with unique aliases, avoiding legacy DNS collisions.
+networks:
+  default: {}

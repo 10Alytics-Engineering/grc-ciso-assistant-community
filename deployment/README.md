@@ -79,31 +79,95 @@ credential directory on exit. Application/database/email secrets stay in
 `/opt/ciso/.env`.
 
 Releases are serialized without cancelling an active deployment. An older build
-is skipped if a newer commit has already reached `main`. A server-side lock also
-prevents concurrent deployment scripts. The release files are staged beneath
-`/opt/ciso/releases/<tag>` before `deployment/deploy.sh`:
+is skipped if a newer commit has reached `main`. A server lock also serializes
+manual rehearsals and CI releases.
 
-1. Validates configuration and pulls images while the old release remains online.
-2. Briefly stops the app and worker, dumps only `grc_pool_lab`, and archives the
-   uploads/queue and configuration under `/opt/ciso/backups/auto-<timestamp>-<tag>`.
-   It checks the dump's table of contents and archive readability before proceeding.
-3. Updates `TAG`, applies database migrations explicitly, and recreates services.
-4. Waits for container health, checks public HTTPS for the API and frontend, and
-   verifies no migrations remain pending. The successful tag is written to
-   `/opt/ciso/deployed-tag` and GitHub records the production deployment result.
-5. Retains the previous release images and seven automatic backup directories.
+### Blue/green web deployments
 
-Expect a short maintenance window during the backup, migration and restart.
-Inspect failures in the workflow's **Deploy GRC Lab** job. Before migrations start,
-a failure resumes the old services. Once migrations may have run, no automatic
-image rollback is attempted: inspect the error and restore the matching database,
-`db` archive and configuration if required. An image rollback cannot undo schema
-changes. Never restore an entire shared cluster over other live applications.
-Automatic backups live on the droplet; retain off-server copies and test restores
-as described above. This is not a replacement for off-site recovery.
+`deployment/deploy.py` alternates between `grc-blue` and `grc-green` Compose
+projects using `compose.slot.yml`. Both slots share the managed PostgreSQL
+database and `/opt/ciso/db`. Each slot has a private network; its web containers
+also join the existing proxy network with unique `backend-blue`/`frontend-blue`
+(or green) aliases. This avoids changing the DNS names used by the legacy stack
+while converting an existing installation.
 
-For a manual release, record the previous tag and take matching backups, update
-`TAG`, then run `docker compose pull && docker compose up -d`.
+The existing `grc-caddy-1` container stays running throughout deployment:
+
+1. Pull images and check for unapplied database migrations **without applying
+   them**. If any are pending, fail the release and keep the current site live.
+2. Take online backups, refresh framework libraries, and start the inactive web
+   slot. Check both container health and access from the proxy's network.
+3. Preserve the current and candidate frontend's hashed assets in Caddy's
+   persistent `/data/grc-assets` directory so existing browser tabs can still
+   load their JavaScript after a switch.
+4. Validate the new worker, send the old Huey consumer SIGINT, and let its running
+   tasks finish. Start one new worker only after the old one exits. Tasks can
+   queue briefly during this handover; HTTP stays available. If draining exceeds
+   five minutes, fail without forcibly killing in-flight tasks.
+5. Gracefully reload Caddy to the healthy candidate. Confirm the API and login
+   page return HTTP 200 with the expected `X-GRC-Release` response header. Save
+   the active slot in `/opt/ciso/deployment-state.json` and version in
+   `/opt/ciso/deployed-tag`.
+6. Keep the previous web slot running for rollback and existing requests. It is
+   recycled at the next deployment, after at least a five-minute drain window.
+   Keep the two release images and seven complete automatic backups.
+
+Failures before cutover leave the live route untouched. Failures during cutover
+restore the previous Caddy configuration and worker; no database restore is
+performed. The first release automatically converts the legacy stack to blue.
+The following release retires the legacy application containers while preserving
+Caddy. Its certificate volumes and network remain in place.
+
+### Database and recovery limits
+
+Schema changes must use a separately reviewed, backwards-compatible
+expand/contract migration: add new structures first, deploy code compatible with
+both schemas, and remove old structures only after the old release is retired.
+The automatic deployment intentionally fails on pending migrations; it never
+runs destructive or locking migrations under active traffic. Queue payloads and
+library changes must also remain compatible with the previous version during
+handover. Library refreshes are normal online data updates and are not undone
+by an image rollback.
+
+PostgreSQL dumps are transactionally consistent. Uploads are archived while the
+site remains writable, retrying if files change during the archive. Huey's
+SQLite queue uses SQLite's online backup API. These are separate snapshots, not
+one atomic snapshot across all three stores. Keep off-server backups, and test
+recovery with the managed database and uploaded evidence together. Deployment
+backups are kept on the droplet; they do not replace off-site recovery.
+
+This removes the planned interruption for compatible web releases. A single
+server still has downtime during a host failure/reboot or proxy-container
+upgrade. Long-lived streams beyond the five-minute drain window require a
+longer drain policy. Host-level high availability needs another server and load
+balancing.
+
+### Operations
+
+Inspect GitHub's **Deploy GRC Lab** job and the active slot:
+
+```bash
+cat /opt/ciso/deployment-state.json
+docker ps --filter name=grc-
+docker logs --tail=100 grc-caddy-1
+```
+
+Use slot-specific container logs, e.g. `docker logs grc-blue-backend-1`.
+Do not run `docker compose up` or `down` on the legacy `/opt/ciso/compose.yml`
+after conversion: it is retained for bootstrap/reference and proxy inspection,
+not application releases. Never stop or recreate Caddy to deploy the web app.
+
+For an operator-run rehearsal using already loaded images, stage `deploy.sh`,
+`deploy.py`, `compose.slot.yml`, and `Caddyfile.slot` in
+`/opt/ciso/releases/<tag>`, then run:
+
+```bash
+bash /opt/ciso/releases/<tag>/deploy.sh <tag> <github-user> --loaded-images
+```
+
+This takes the same deployment lock and runs the same backup, readiness,
+worker-handover, cutover and rollback logic. Never restore the entire shared
+PostgreSQL cluster to roll back this application.
 
 The modified source is in the public 10Alytics repository, linked from the login
 page. No AGPL notices or source files are removed.
